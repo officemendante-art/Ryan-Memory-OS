@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ryan Profile Intake V3 — Wingman OS</title>
+  <style>
+    :root {
+      --bg: #06070b;
+      --panel: rgba(17, 19, 28, 0.92);
+      --panel2: rgba(23, 26, 38, 0.92);
+      --panel3: rgba(8, 10, 16, 0.95);
+      --text: #f5f6fb;
+      --muted: #aeb3c4;
+      --soft: #7c8398;
+      --line: rgba(255, 255, 255, 0.11);
+      --line2: rgba(255, 255, 255, 0.07);
+      --accent: #8e7cff;
+      --accent2: #54d6aa;
+      --danger: #ff6b7b;
+      --warn: #ffbd73;
+      --blue: #61b8ff;
+      --good: #55d48d;
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+      --shadow: 0 30px 90px rgba(0, 0, 0, 0.44);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 8% 4%, rgba(142, 124, 255, .25), transparent 34%),
+        radial-gradient(circle at 88% 10%, rgba(84, 214, 170, .16), transparent 30%),
+        linear-gradient(180deg, #090a10 0%, #05060a 100%);
+      color: var(--text);
+      font-family: var(--font);
+      letter-spacing: -0.012em;
+    }
+
+    button, input, select, textarea { font: inherit; }
+
+    .shell {
+      width: min(1220px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 64px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      border: 1px solid rgba(142, 124, 255, .58);
+      background: linear-gradient(145deg, rgba(142,124,255,.32), rgba(84,214,170,.09));
+      font-weight: 900;
+      box-shadow: 0 18px 50px rgba(142,124,255,.18);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 44px);
+      line-height: 0.95;
+      letter-spacing: -0.065em;
+    }
+
+    .brand p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 13px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: rgba(255,255,255,.06);
+      border-radius: 999px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover { transform: translateY(-1px); border-color: rgba(255,255,255,.23); background: rgba(255,255,255,.085); }
+    .btn:active { transform: translateY(0); }
+    .btn.primary { background: linear-gradient(135deg, #8e7cff, #6e5ef7); border-color: transparent; box-shadow: 0 16px 40px rgba(142,124,255,.2); }
+    .btn.good { background: linear-gradient(135deg, #54d6aa, #2fb47f); border-color: transparent; color: #06120e; font-weight: 800; }
+    .btn.danger { color: #ffd6dc; border-color: rgba(255,107,123,.32); background: rgba(255,107,123,.08); }
+    .btn.small { padding: 7px 10px; font-size: 12px; }
+
+    .hero {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background: linear-gradient(145deg, rgba(255,255,255,.08), rgba(255,255,255,.025));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      padding: clamp(18px, 3vw, 30px);
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 18px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .hero:after {
+      content: "";
+      position: absolute;
+      width: 360px;
+      height: 360px;
+      right: -120px;
+      top: -150px;
+      background: radial-gradient(circle, rgba(142,124,255,.28), transparent 65%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border: 1px solid rgba(84,214,170,.34);
+      color: #baffea;
+      background: rgba(84,214,170,.08);
+      border-radius: 999px;
+      font-size: 12px;
+      margin-bottom: 14px;
+    }
+
+    .hero h2 {
+      margin: 0;
+      font-size: clamp(30px, 5.4vw, 62px);
+      line-height: .94;
+      letter-spacing: -.075em;
+      max-width: 780px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero .copy {
+      margin: 16px 0 0;
+      max-width: 780px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.65;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-side {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(0,0,0,.22);
+      padding: 16px;
+      z-index: 1;
+    }
+
+    .score-row {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .ring {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(var(--accent) 0deg, rgba(255,255,255,.1) 0deg);
+      position: relative;
+    }
+
+    .ring:after {
+      content: "";
+      position: absolute;
+      inset: 9px;
+      border-radius: inherit;
+      background: #0c0e16;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .ring span { position: relative; z-index: 1; font-weight: 900; font-size: 21px; }
+
+    .score-title { margin: 0; font-weight: 850; font-size: 16px; }
+    .score-copy { margin: 6px 0 0; color: var(--muted); font-size: 12.5px; line-height: 1.45; }
+
+    .meter-list { margin-top: 16px; display: grid; gap: 9px; }
+    .meter-line { display: grid; grid-template-columns: 92px 1fr 44px; gap: 10px; align-items: center; font-size: 12px; color: var(--muted); }
+    .track { height: 7px; background: rgba(255,255,255,.08); border-radius: 999px; overflow: hidden; border: 1px solid rgba(255,255,255,.04); }
+    .bar { height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .25s ease; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .nav {
+      position: sticky;
+      top: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: rgba(14,16,24,.78);
+      padding: 10px;
+      box-shadow: 0 18px 70px rgba(0,0,0,.28);
+    }
+
+    .nav-label {
+      padding: 9px 9px 8px;
+      color: var(--soft);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-weight: 850;
+    }
+
+    .nav-item {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      text-align: left;
+      border: 1px solid transparent;
+      background: transparent;
+      border-radius: 13px;
+      padding: 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .nav-item.active { color: var(--text); border-color: rgba(142,124,255,.35); background: rgba(142,124,255,.12); }
+    .nav-dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,.16); flex-shrink: 0; }
+    .nav-dot.done { background: var(--good); box-shadow: 0 0 0 4px rgba(85,212,141,.12); }
+    .nav-dot.partial { background: var(--warn); }
+
+    .note-box {
+      border: 1px solid rgba(84,214,170,.22);
+      background: rgba(84,214,170,.07);
+      color: #c9ffed;
+      border-radius: 16px;
+      padding: 12px;
+      font-size: 12.5px;
+      line-height: 1.5;
+      margin-top: 10px;
+    }
+
+    .content { display: grid; gap: 16px; }
+
+    .section {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: var(--panel);
+      overflow: visible;
+      box-shadow: 0 16px 60px rgba(0,0,0,.22);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 20px;
+      border-bottom: 1px solid var(--line2);
+      background: linear-gradient(180deg, rgba(255,255,255,.045), transparent);
+    }
+
+    .head-left { display: flex; gap: 13px; min-width: 0; }
+
+    .icon {
+      width: 42px;
+      height: 42px;
+      flex: 0 0 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(142,124,255,.28);
+      background: rgba(142,124,255,.18);
+      font-size: 19px;
+    }
+
+    .section-title { margin: 0; font-size: 20px; letter-spacing: -.045em; }
+    .section-sub { margin: 4px 0 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 5px 9px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+    .badge.must { color: #ffd7dd; border-color: rgba(255,107,123,.4); background: rgba(255,107,123,.11); }
+    .badge.opt { color: #e5e7ee; }
+    .badge.power { color: #dcd7ff; border-color: rgba(142,124,255,.42); background: rgba(142,124,255,.12); }
+    .badge.separate { color: #c5ffec; border-color: rgba(84,214,170,.34); background: rgba(84,214,170,.08); }
+
+    .section-body { padding: 20px; }
+
+    .helper {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      border-radius: 18px;
+      padding: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+
+    .helper strong { color: var(--text); }
+
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.one { grid-template-columns: 1fr; }
+    .span-2 { grid-column: span 2; }
+    .span-3 { grid-column: 1 / -1; }
+
+    .field, .smart-field {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    label {
+      color: #dee3ff;
+      font-size: 12px;
+      font-weight: 760;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .req { color: #ff8090; }
+    .optional { color: var(--soft); font-weight: 600; font-size: 11px; }
+
+    input, select, textarea {
+      width: 100%;
+      color: var(--text);
+      background: rgba(6,8,13,.78);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 13px;
+      padding: 12px;
+      outline: none;
+      transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+      min-height: 46px;
+    }
+
+    select { cursor: pointer; }
+    textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
+    input:focus, select:focus, textarea:focus { border-color: rgba(142,124,255,.72); box-shadow: 0 0 0 4px rgba(142,124,255,.12); background: rgba(7,9,15,.98); }
+    input[readonly] { color: #c7cbda; background: rgba(255,255,255,.045); cursor: default; }
+
+    .hint { color: var(--soft); font-size: 11.5px; line-height: 1.35; }
+
+    .smart-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .note-toggle {
+      min-height: 46px;
+      border-radius: 13px;
+      border: 1px solid rgba(142,124,255,.22);
+      color: #ddd7ff;
+      background: rgba(142,124,255,.1);
+      padding: 0 12px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .note-toggle:hover { background: rgba(142,124,255,.16); }
+    .note-toggle.active { border-color: rgba(84,214,170,.42); color: #baffea; background: rgba(84,214,170,.1); }
+
+    .custom-input {
+      display: none;
+      margin-top: 2px;
+      border-color: rgba(84,214,170,.28);
+      background: rgba(84,214,170,.045);
+    }
+
+    .custom-input.show { display: block; }
+
+    .detail-pop {
+      display: none;
+      border: 1px solid rgba(142,124,255,.26);
+      background: linear-gradient(180deg, rgba(142,124,255,.12), rgba(255,255,255,.035));
+      border-radius: 16px;
+      padding: 11px;
+      margin-top: 2px;
+      box-shadow: 0 18px 44px rgba(0,0,0,.24);
+    }
+
+    .detail-pop.show { display: block; }
+
+    .detail-pop .mini-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: #dcd7ff;
+      font-size: 12px;
+      font-weight: 850;
+      margin-bottom: 8px;
+    }
+
+    .detail-pop textarea {
+      min-height: 82px;
+      border-radius: 13px;
+      font-size: 13px;
+    }
+
+    .chips-wrap { margin-top: 14px; }
+    .chips-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .chips-title { margin: 0; color: #dee3ff; font-size: 12px; font-weight: 780; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      border: 1px solid rgba(255,255,255,.12);
+      color: var(--muted);
+      background: rgba(255,255,255,.045);
+      border-radius: 999px;
+      padding: 8px 11px;
+      cursor: pointer;
+      font-size: 12px;
+      user-select: none;
+      transition: background .12s ease, border-color .12s ease, color .12s ease;
+    }
+    .chip.active { color: #fff; border-color: rgba(142,124,255,.62); background: rgba(142,124,255,.25); }
+    .chip.custom-chip { border-color: rgba(84,214,170,.42); color: #c7ffed; background: rgba(84,214,170,.1); }
+
+    .chip-add {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .chip-add input { min-height: 42px; padding: 10px 12px; }
+
+    .divider {
+      height: 1px;
+      background: var(--line2);
+      margin: 18px 0;
+    }
+
+    .profile-output {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid rgba(84,214,170,.24);
+      background: rgba(0,0,0,.34);
+      border-radius: 18px;
+      padding: 16px;
+      color: #dfffee;
+      font-family: var(--mono);
+      font-size: 12px;
+      max-height: 420px;
+      overflow: auto;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 30;
+      border: 1px solid rgba(84,214,170,.34);
+      background: rgba(9, 15, 13, .94);
+      color: #c7ffed;
+      padding: 12px 14px;
+      border-radius: 16px;
+      box-shadow: 0 18px 54px rgba(0,0,0,.38);
+      transform: translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+      font-size: 13px;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    @media (max-width: 980px) {
+      .hero, .layout { grid-template-columns: 1fr; }
+      .nav { position: static; }
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .span-3 { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 620px) {
+      .shell { width: min(100% - 20px, 1220px); padding-top: 18px; }
+      .topbar, .section-head, .chips-head { flex-direction: column; align-items: stretch; }
+      .actions { justify-content: flex-start; }
+      .hero { padding: 16px; }
+      .grid, .grid.two { grid-template-columns: 1fr; }
+      .span-2, .span-3 { grid-column: auto; }
+      .score-row { grid-template-columns: 1fr; }
+      .smart-row { grid-template-columns: 1fr; }
+      .note-toggle { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">R</div>
+        <div>
+          <h1>Ryan Profile Builder V3</h1>
+          <p>One-time honest user profile. Target/woman profiles and case snapshots live separately.</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" type="button" id="saveBtn">Save locally</button>
+        <button class="btn" type="button" id="loadBtn">Load saved</button>
+        <button class="btn danger" type="button" id="resetBtn">Reset</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <span class="eyebrow">Profile strength = better advice</span>
+        <h2>Build the user first. Then Ryan can coach like he actually knows the person.</h2>
+        <p class="copy">Every dropdown is now a <strong>smart field</strong>: choose fast from options, type your own answer, and add a deeper note when the simple choice is not enough. More honest context gives Ryan stronger calibration, more natural replies, and less generic advice.</p>
+      </div>
+      <aside class="hero-side">
+        <div class="score-row">
+          <div class="ring" id="ring"><span id="scorePct">0%</span></div>
+          <div>
+            <p class="score-title" id="readinessTitle">Profile not ready</p>
+            <p class="score-copy" id="readinessCopy">Fill the must-have foundation first. Power data is optional, but it makes Ryan sharper.</p>
+          </div>
+        </div>
+        <div class="meter-list">
+          <div class="meter-line"><span>Foundation</span><div class="track"><div class="bar" id="foundationBar"></div></div><strong id="foundationPct">0%</strong></div>
+          <div class="meter-line"><span>Depth</span><div class="track"><div class="bar" id="depthBar"></div></div><strong id="depthPct">0%</strong></div>
+          <div class="meter-line"><span>Power notes</span><div class="track"><div class="bar" id="powerBar"></div></div><strong id="powerPct">0%</strong></div>
+        </div>
+      </aside>
+    </section>
+
+    <main class="layout">
+      <nav class="nav" aria-label="Profile sections">
+        <div class="nav-label">User profile only</div>
+        <button class="nav-item active" type="button" data-target="identity"><span>Identity</span><span class="nav-dot" id="dot-identity"></span></button>
+        <button class="nav-item" type="button" data-target="appearance"><span>Appearance</span><span class="nav-dot" id="dot-appearance"></span></button>
+        <button class="nav-item" type="button" data-target="work"><span>Work & lifestyle</span><span class="nav-dot" id="dot-work"></span></button>
+        <button class="nav-item" type="button" data-target="relationship"><span>Relationship goal</span><span class="nav-dot" id="dot-relationship"></span></button>
+        <button class="nav-item" type="button" data-target="personality"><span>Personality</span><span class="nav-dot" id="dot-personality"></span></button>
+        <button class="nav-item" type="button" data-target="values"><span>Values & type</span><span class="nav-dot" id="dot-values"></span></button>
+        <button class="nav-item" type="button" data-target="export"><span>Build profile</span><span class="nav-dot" id="dot-export"></span></button>
+        <div class="note-box"><strong>Removed:</strong> safety rules, Ryan behavior instructions, and current target/case snapshot. Those belong to separate modules, not this user profile.</div>
+      </nav>
+
+      <div class="content">
+        <section class="section" id="identity" data-section="identity">
+          <div class="section-head">
+            <div class="head-left">
+              <div class="icon">👤</div>
+              <div>
+                <h2 class="section-title">Identity & basic context</h2>
+                <p class="section-sub">Minimum foundation Ryan needs to understand who the user is in real life.</p>
+              </div>
+            </div>
+            <span class="badge must">Must have</span>
+          </div>
+          <div class="section-body">
+            <div class="grid">
+              <div class="field"><label for="firstName">First name / nickname <span class="req">*</span></label><input id="firstName" name="firstName" data-category="foundation" data-required="true" placeholder="e.g. Dante" /></div>
+              <div class="field"><label for="dob">Date of birth <span class="req">*</span></label><input id="dob" name="dob" type="date" data-category="foundation" data-required="true" /><span class="hint">Used to auto-update age every year. Stored locally only.</span></div>
+              <div class="field"><label for="ageAuto">Age auto-calculated</label><input id="ageAuto" name="ageAuto" readonly placeholder="Auto" /></div>
+              <div class="field"><label for="city">City <span class="req">*</span></label><input id="city" name="city" data-category="foundation" data-required="true" placeholder="e.g. Mumbai" /></div>
+              <div class="field"><label for="state">State / region <span class="req">*</span></label><input id="state" name="state" data-category="foundation" data-required="true" placeholder="e.g. Maharashtra" /></div>
+              <div class="field"><label for="country">Country <span class="req">*</span></label><input id="country" name="country" data-category="foundation" data-required="true" placeholder="e.g. India" /></div>
+              <div class="field"><label for="culture">Cultural background <span class="optional">optional</span></label><input id="culture" name="culture" data-category="depth" placeholder="e.g. Marathi, South Indian, Punjabi..." /></div>
+              <div class="field"><label for="motherTongue">Mother tongue <span class="optional">optional</span></label><input id="motherTongue" name="motherTongue" data-category="depth" placeholder="e.g. Marathi" /></div>
+              <div class="field"><label for="languages">Languages you can actually speak <span class="req">*</span></label><input id="languages" name="languages" data-category="foundation" data-required="true" placeholder="e.g. English, Marathi, Hindi" /><span class="hint">Ryan uses this for natural drafts, not AI-sounding messages.</span></div>
+              <div class="field span-3"><label for="selfDescription">Describe yourself honestly in 3–5 lines <span class="optional">power data</span></label><textarea id="selfDescription" name="selfDescription" data-category="power" placeholder="Example: I am introverted, ambitious, loyal, but I overthink around women until I get comfortable..."></textarea></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="appearance" data-section="appearance">
+          <div class="section-head">
+            <div class="head-left">
+              <div class="icon">🪞</div>
+              <div>
+                <h2 class="section-title">Appearance, grooming & presence</h2>
+                <p class="section-sub">Optional, but high value. Ryan should never reduce the user to looks, but real-world presence matters.</p>
+              </div>
+            </div>
+            <span class="badge opt">Optional / high value</span>
+          </div>
+          <div class="section-body">
+            <div class="helper"><strong>Why optional?</strong> Appearance context helps Ryan give realistic confidence, styling, and approach strategy. It should never become shame, obsession, or fake identity-building.</div>
+            <div class="grid">
+              <div class="smart-field combo" data-key="height" data-category="depth">
+                <label>Height <span class="optional">optional</span></label>
+                <div class="smart-row"><select name="height"><option value="">Select…</option><option>Under 5'5</option><option>5'5–5'7</option><option>5'8–5'10</option><option>5'11–6'1</option><option>6'2+</option><option value="__custom">Type exact height…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="e.g. 5'8 / 173 cm" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe height context more</span><span>optional</span></div><textarea placeholder="Example: I am 5'8, normal Indian height, but sometimes compare myself to taller guys..."></textarea></div>
+              </div>
+
+              <div class="smart-field combo" data-key="bodyType" data-category="depth">
+                <label>Body type <span class="optional">optional</span></label>
+                <div class="smart-row"><select name="bodyType"><option value="">Select…</option><option>Slim / lean</option><option>Average</option><option>Athletic</option><option>Stocky / heavy set</option><option>Currently out of shape</option><option>Working on it</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Describe your body type your way" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe body context more</span><span>optional</span></div><textarea placeholder="Example: Average now, restarting workouts, want lean athletic confidence..."></textarea></div>
+              </div>
+
+              <div class="smart-field combo" data-key="fitnessState" data-category="depth">
+                <label>Fitness state <span class="optional">optional</span></label>
+                <div class="smart-row"><select name="fitnessState"><option value="">Select…</option><option>Beginner</option><option>Getting back into shape</option><option>Intermediate</option><option>Fit</option><option>Very fit</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Your exact fitness situation" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe fitness more</span><span>optional</span></div><textarea placeholder="Example: I am restarting after a long gap. Confidence improves when I train consistently..."></textarea></div>
+              </div>
+
+              <div class="smart-field combo" data-key="hair" data-category="depth">
+                <label>Hair <span class="optional">optional</span></label>
+                <div class="smart-row"><select name="hair"><option value="">Select…</option><option>Short</option><option>Medium / styled</option><option>Long</option><option>Bald / shaved</option><option>Thinning</option><option>Curly</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Your exact hair situation" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe hair context more</span><span>optional</span></div><textarea placeholder="Example: Bald since early 20s. I like it alone, but social judgment affects confidence..."></textarea></div>
+              </div>
+
+              <div class="smart-field combo" data-key="facialHair" data-category="depth">
+                <label>Facial hair <span class="optional">optional</span></label>
+                <div class="smart-row"><select name="facialHair"><option value="">Select…</option><option>Clean shaved</option><option>Light stubble</option><option>Short beard</option><option>Full beard</option><option>Moustache</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Describe facial hair" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe facial hair more</span><span>optional</span></div><textarea placeholder="Example: Full beard is part of my look and balances my bald head..."></textarea></div>
+              </div>
+
+              <div class="smart-field combo" data-key="skinTone" data-category="depth">
+                <label>Skin tone <span class="optional">optional</span></label>
+                <div class="smart-row"><select name="skinTone"><option value="">Select…</option><option>Fair</option><option>Wheatish</option><option>Medium brown</option><option>Dark brown</option><option>Black</option><option>East Asian</option><option>Mixed / other</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Describe skin tone your way" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe skin tone context more</span><span>optional</span></div><textarea placeholder="Example: Medium warm brown Indian skin tone. I want advice that suits my actual look..."></textarea></div>
+              </div>
+
+              <div class="smart-field combo span-2" data-key="currentStyle" data-category="depth">
+                <label>Current style <span class="optional">optional</span></label>
+                <div class="smart-row"><select name="currentStyle"><option value="">Select…</option><option>No clear style yet</option><option>Casual</option><option>Smart casual</option><option>Formal / office</option><option>Streetwear</option><option>Traditional</option><option>Quiet luxury / mature masculine</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Describe your style your way" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe style more</span><span>optional</span></div><textarea placeholder="Example: I prefer clean smart casual, premium but not loud, masculine and mature..."></textarea></div>
+              </div>
+
+              <div class="field"><label for="presenceGoal">Presence goal <span class="optional">optional</span></label><input id="presenceGoal" name="presenceGoal" data-category="power" placeholder="e.g. calm, confident, dangerous but respectful" /></div>
+            </div>
+
+            <div class="chips-wrap" data-chip-section="insecurities" data-category="power">
+              <div class="chips-head"><p class="chips-title">Main appearance insecurities — multiple allowed</p><span class="hint">tap all that apply</span></div>
+              <div class="chips">
+                <span class="chip">Baldness</span><span class="chip">Height</span><span class="chip">Weight</span><span class="chip">Skin tone</span><span class="chip">Face shape</span><span class="chip">Smile / teeth</span><span class="chip">Clothes</span><span class="chip">Posture</span><span class="chip">Body shape</span><span class="chip">Looking too young</span><span class="chip">Looking too old</span>
+              </div>
+              <div class="chip-add"><input placeholder="Add another insecurity or body-context note" /><button class="btn small" type="button">+ Add</button></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="work" data-section="work">
+          <div class="section-head">
+            <div class="head-left">
+              <div class="icon">💼</div>
+              <div>
+                <h2 class="section-title">Work, lifestyle & social environment</h2>
+                <p class="section-sub">This tells Ryan what your real daily life looks like and what conversation fuel is natural.</p>
+              </div>
+            </div>
+            <span class="badge opt">Optional / power</span>
+          </div>
+          <div class="section-body">
+            <div class="grid">
+              <div class="field"><label for="workRole">What do you do? <span class="optional">optional</span></label><input id="workRole" name="workRole" data-category="depth" placeholder="e.g. manager, student, founder" /></div>
+              <div class="field"><label for="industry">Industry / field <span class="optional">optional</span></label><input id="industry" name="industry" data-category="depth" placeholder="e.g. finance, society management, tech" /></div>
+              <div class="smart-field combo" data-key="incomeBracket" data-category="depth">
+                <label>Income bracket <span class="optional">optional</span></label>
+                <div class="smart-row"><select name="incomeBracket"><option value="">Prefer not to say</option><option>Student / no income</option><option>Entry level</option><option>Mid level</option><option>Comfortable</option><option>High earner</option><option>Building business</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Your exact financial context if needed" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe finances more</span><span>optional</span></div><textarea placeholder="Example: I am not rich yet, but I am ambitious and building long-term stability..."></textarea></div>
+              </div>
+              <div class="smart-field combo" data-key="dailySchedule" data-category="depth">
+                <label>Daily schedule <span class="optional">optional</span></label>
+                <div class="smart-row"><select name="dailySchedule"><option value="">Select…</option><option>Very busy</option><option>Normal office routine</option><option>Flexible</option><option>Late nights</option><option>Irregular</option><option>Mostly free right now</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Describe your daily schedule" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe schedule more</span><span>optional</span></div><textarea placeholder="Example: I work long hours, so my social exposure is low and I need realistic low-frequency strategy..."></textarea></div>
+              </div>
+              <div class="smart-field combo" data-key="socialLife" data-category="foundation">
+                <label>Social life vibe <span class="req">*</span></label>
+                <div class="smart-row"><select name="socialLife" data-required="true"><option value="">Select…</option><option>Large social circle</option><option>Small close group</option><option>Mostly solo</option><option>Online more than offline</option><option>Work-focused life</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Describe your social life your way" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe social life more</span><span>recommended</span></div><textarea placeholder="Example: I have a small group, mostly male friends, I rarely meet new women naturally..."></textarea></div>
+              </div>
+              <div class="smart-field combo" data-key="opportunityLevel" data-category="depth">
+                <label>How much natural social exposure do you have? <span class="optional">optional</span></label>
+                <div class="smart-row"><select name="opportunityLevel"><option value="">Select…</option><option>Almost none</option><option>Low — occasional</option><option>Medium — sometimes</option><option>High — many people around</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Describe exposure situation" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe exposure more</span><span>optional</span></div><textarea placeholder="Example: I visit bank or office places sometimes, but not enough for easy proximity..."></textarea></div>
+              </div>
+            </div>
+
+            <div class="chips-wrap" data-chip-section="interests" data-category="power">
+              <div class="chips-head"><p class="chips-title">Interests that are actually true — manual entry also available</p><span class="hint">tap all that apply</span></div>
+              <div class="chips">
+                <span class="chip">Fitness</span><span class="chip">Cycling</span><span class="chip">Fashion</span><span class="chip">Business</span><span class="chip">Movies</span><span class="chip">Music</span><span class="chip">Food</span><span class="chip">Travel</span><span class="chip">Reading</span><span class="chip">Gaming</span><span class="chip">Photography</span><span class="chip">Spirituality</span><span class="chip">Art / design</span><span class="chip">Finance</span><span class="chip">Law</span><span class="chip">Technology</span>
+              </div>
+              <div class="chip-add"><input placeholder="Add a real interest, hobby, habit, or obsession" /><button class="btn small" type="button">+ Add</button></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="relationship" data-section="relationship">
+          <div class="section-head">
+            <div class="head-left">
+              <div class="icon">💗</div>
+              <div>
+                <h2 class="section-title">Relationship history & goal</h2>
+                <p class="section-sub">Mandatory because Ryan must know whether the user wants casual dating, serious relationship, marriage, or recovery.</p>
+              </div>
+            </div>
+            <span class="badge must">Must have</span>
+          </div>
+          <div class="section-body">
+            <div class="grid">
+              <div class="smart-field combo" data-key="currentStatus" data-category="foundation">
+                <label>Current status <span class="req">*</span></label>
+                <div class="smart-row"><select name="currentStatus" data-required="true"><option value="">Select…</option><option>Completely single</option><option>Talking to someone</option><option>In something complicated</option><option>Recently out of a relationship</option><option>In a relationship</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Describe your current status" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe status more</span><span>recommended</span></div><textarea placeholder="Example: Single for years, no active dating life, but interested in someone specific..."></textarea></div>
+              </div>
+
+              <div class="smart-field combo" data-key="pastExperience" data-category="foundation">
+                <label>Past experience <span class="req">*</span></label>
+                <div class="smart-row"><select name="pastExperience" data-required="true"><option value="">Select…</option><option>Never been in a relationship</option><option>1–2 relationships</option><option>Few serious relationships</option><option>Many short relationships</option><option>Marriage / divorce experience</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Your exact past relationship history" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe past experience more</span><span>optional</span></div><textarea placeholder="Example: I have limited experience and mostly avoided initiating with women..."></textarea></div>
+              </div>
+
+              <div class="smart-field combo" data-key="goalNow" data-category="foundation">
+                <label>What you want now <span class="req">*</span></label>
+                <div class="smart-row"><select name="goalNow" data-required="true"><option value="">Select…</option><option>Build confidence generally</option><option>Talk to someone specific</option><option>Get into a serious relationship</option><option>Marriage eventually</option><option>Casual dating</option><option>Understand women better</option><option>Fix a situation that went wrong</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Your exact relationship goal" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe goal more</span><span>recommended</span></div><textarea placeholder="Example: I want a real bond, not random games. I want to learn how to talk naturally and respectfully..."></textarea></div>
+              </div>
+
+              <div class="smart-field combo" data-key="desiredTimeline" data-category="depth">
+                <label>Desired timeline <span class="optional">optional</span></label>
+                <div class="smart-row"><select name="desiredTimeline"><option value="">Select…</option><option>No rush</option><option>Within 3 months</option><option>Within 6–12 months</option><option>When the right person appears</option><option>Marriage-focused timeline</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Describe timeline your way" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe timeline more</span><span>optional</span></div><textarea placeholder="Example: I am not desperate; I want to improve myself and act when there is a real opportunity..."></textarea></div>
+              </div>
+              <div class="field span-2"><label for="dealBreakers">Deal breakers <span class="optional">optional</span></label><input id="dealBreakers" name="dealBreakers" data-category="depth" placeholder="e.g. disrespect, dishonesty, emotional immaturity" /></div>
+            </div>
+
+            <div class="chips-wrap" data-chip-section="patterns" data-category="power">
+              <div class="chips-head"><p class="chips-title">Repeated dating pattern — select or add your own</p><span class="hint">optional but useful</span></div>
+              <div class="chips">
+                <span class="chip">I overthink</span><span class="chip">I avoid talking first</span><span class="chip">I get friend-zoned</span><span class="chip">I wait too long</span><span class="chip">I get attached fast</span><span class="chip">I act too cold</span><span class="chip">I become too available</span><span class="chip">I don’t know how to flirt</span><span class="chip">I struggle with small talk</span><span class="chip">I lose confidence after rejection</span>
+              </div>
+              <div class="chip-add"><input placeholder="Add your exact repeated pattern" /><button class="btn small" type="button">+ Add</button></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="personality" data-section="personality">
+          <div class="section-head">
+            <div class="head-left">
+              <div class="icon">🧩</div>
+              <div>
+                <h2 class="section-title">Personality, confidence & social wiring</h2>
+                <p class="section-sub">This is where generic advice dies. Ryan must know your natural style before suggesting what to say.</p>
+              </div>
+            </div>
+            <span class="badge must">Must + power</span>
+          </div>
+          <div class="section-body">
+            <div class="helper"><strong>New smart-note feature:</strong> choose a quick option, then add a deeper note when the option is not enough. Example: “Low — I overthink, but once she gives a clear trigger or shows interest, I can talk for long.”</div>
+            <div class="grid">
+              <div class="smart-field combo" data-key="socialStyle" data-category="foundation">
+                <label>Social style <span class="req">*</span></label>
+                <div class="smart-row"><select name="socialStyle" data-required="true"><option value="">Select…</option><option>Very introverted</option><option>More introvert than extrovert</option><option>Balanced</option><option>More extrovert than introvert</option><option>Very extroverted</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Describe your social style" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe social style more</span><span>recommended</span></div><textarea placeholder="Example: I can talk with men normally, but around women I usually stay professional unless she engages first..."></textarea></div>
+              </div>
+
+              <div class="smart-field combo" data-key="confidenceWomen" data-category="foundation">
+                <label>Confidence around women <span class="req">*</span></label>
+                <div class="smart-row"><select name="confidenceWomen" data-required="true"><option value="">Select…</option><option>Very low — I freeze</option><option>Low — I overthink</option><option>Medium — depends on the situation</option><option>Good — I need direction</option><option>High — I want to sharpen</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Describe confidence your way" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe confidence more</span><span>strongly recommended</span></div><textarea placeholder="Example: Low because I don’t know how to start. But once I get a trigger point, topic, or clear interest from her, I can become comfortable and continue conversation naturally..."></textarea></div>
+              </div>
+
+              <div class="smart-field combo" data-key="communicationStyle" data-category="foundation">
+                <label>Communication style <span class="req">*</span></label>
+                <div class="smart-row"><select name="communicationStyle" data-required="true"><option value="">Select…</option><option>Deep / intense</option><option>Chill / easy-going</option><option>Listener more than talker</option><option>Talker more than listener</option><option>Direct and blunt</option><option>Soft and careful</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Describe communication style" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe communication more</span><span>optional</span></div><textarea placeholder="Example: I prefer meaningful conversation, but I struggle to begin with light small talk..."></textarea></div>
+              </div>
+
+              <div class="smart-field combo" data-key="humourStyle" data-category="depth">
+                <label>Humour style <span class="optional">optional</span></label>
+                <div class="smart-row"><select name="humourStyle"><option value="">Select…</option><option>Dry humour</option><option>Dark humour</option><option>Playful / goofy</option><option>Witty / clever</option><option>Observational</option><option>I am not really funny</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Describe humour style" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe humour more</span><span>optional</span></div><textarea placeholder="Example: Dark humour with close people, but careful with new people..."></textarea></div>
+              </div>
+
+              <div class="smart-field combo" data-key="attachmentGuess" data-category="depth">
+                <label>Attachment style guess <span class="optional">optional</span></label>
+                <div class="smart-row"><select name="attachmentGuess"><option value="">Not sure</option><option>Secure</option><option>Anxious</option><option>Avoidant</option><option>Anxious-avoidant / mixed</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Describe attachment pattern" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe attachment more</span><span>optional</span></div><textarea placeholder="Example: I don’t chase, but if I like someone I silently overthink a lot..."></textarea></div>
+              </div>
+
+              <div class="smart-field combo" data-key="rejectionImpact" data-category="depth">
+                <label>How rejection hits you <span class="optional">optional</span></label>
+                <div class="smart-row"><select name="rejectionImpact"><option value="">Select…</option><option>I move on quickly</option><option>I act like I don’t care but think about it later</option><option>It hits hard</option><option>I avoid trying because of it</option><option>It makes me angry</option><option>It makes me improve</option><option value="__custom">Type my own…</option></select><button class="note-toggle" type="button">+ note</button></div>
+                <input class="custom-input" placeholder="Describe rejection response" />
+                <div class="detail-pop"><div class="mini-title"><span>Describe rejection more</span><span>optional</span></div><textarea placeholder="Example: I don’t show it outside, but internally I replay everything and feel exposed..."></textarea></div>
+              </div>
+            </div>
+
+            <div class="chips-wrap" data-chip-section="strengths" data-category="power">
+              <div class="chips-head"><p class="chips-title">Strengths</p><span class="hint">tap all that apply</span></div>
+              <div class="chips"><span class="chip">Loyal</span><span class="chip">Ambitious</span><span class="chip">Reliable</span><span class="chip">Good listener</span><span class="chip">Deep thinker</span><span class="chip">Caring</span><span class="chip">Romantic</span><span class="chip">Funny</span><span class="chip">Creative</span><span class="chip">Protective</span><span class="chip">Calm</span><span class="chip">Hard working</span><span class="chip">Honest</span><span class="chip">Disciplined</span></div>
+              <div class="chip-add"><input placeholder="Add a personal strength" /><button class="btn small" type="button">+ Add</button></div>
+            </div>
+
+            <div class="chips-wrap" data-chip-section="weaknesses" data-category="power">
+              <div class="chips-head"><p class="chips-title">Weaknesses Ryan must know</p><span class="hint">tap honestly</span></div>
+              <div class="chips"><span class="chip">Overthink everything</span><span class="chip">Shy at first</span><span class="chip">Fear of rejection</span><span class="chip">Struggle with small talk</span><span class="chip">Too nice / people pleaser</span><span class="chip">Get attached fast</span><span class="chip">Avoid showing interest</span><span class="chip">Bad at texting back</span><span class="chip">Jealous tendency</span><span class="chip">Low self-image</span><span class="chip">Need external validation</span><span class="chip">Freeze in real life</span></div>
+              <div class="chip-add"><input placeholder="Add an honest weakness or social fear" /><button class="btn small" type="button">+ Add</button></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="values" data-section="values">
+          <div class="section-head">
+            <div class="head-left">
+              <div class="icon">🧭</div>
+              <div>
+                <h2 class="section-title">Values, boundaries & type</h2>
+                <p class="section-sub">Ryan should not only help you attract someone. He should help you choose correctly.</p>
+              </div>
+            </div>
+            <span class="badge power">Power data</span>
+          </div>
+          <div class="section-body">
+            <div class="grid two">
+              <div class="field"><label for="coreValues">Your core values <span class="optional">optional</span></label><input id="coreValues" name="coreValues" data-category="power" placeholder="e.g. loyalty, family, ambition, honesty, peace" /></div>
+              <div class="field"><label for="typePreference">Type of woman you usually like <span class="optional">optional</span></label><input id="typePreference" name="typePreference" data-category="power" placeholder="e.g. intelligent, calm, feminine, ambitious, traditional" /></div>
+              <div class="field"><label for="loveFear">Biggest fear in love <span class="optional">optional</span></label><input id="loveFear" name="loveFear" data-category="power" placeholder="e.g. rejection, being used, betrayal, not being enough" /></div>
+              <div class="field"><label for="nonNegotiables">Non-negotiables <span class="optional">optional</span></label><input id="nonNegotiables" name="nonNegotiables" data-category="power" placeholder="e.g. respect, honesty, emotional maturity" /></div>
+            </div>
+
+            <div class="divider"></div>
+            <div class="helper"><strong>Moved out of profile:</strong> “Advice style Ryan should avoid” is not part of the user’s identity. It belongs to <strong>Ryan Master Settings</strong> later, where Ryan’s personality, negative prompts, tone, boundaries, and behavior rules can be edited separately.</div>
+          </div>
+        </section>
+
+        <section class="section" id="export" data-section="export">
+          <div class="section-head">
+            <div class="head-left">
+              <div class="icon">⚙️</div>
+              <div>
+                <h2 class="section-title">Build Ryan user profile</h2>
+                <p class="section-sub">Exports a clean JSON profile and a starter context block for the AI layer.</p>
+              </div>
+            </div>
+            <span class="badge separate">Ready for database</span>
+          </div>
+          <div class="section-body">
+            <div class="helper"><strong>This is only the user profile.</strong> A woman/target profile, current chat analysis, bank-girl case, Instagram DM case, or relationship case should be created in a separate module so your permanent profile does not get polluted by temporary situations.</div>
+            <div class="actions" style="justify-content:flex-start; margin-bottom:12px;">
+              <button class="btn primary" type="button" id="buildBtn">Build profile JSON</button>
+              <button class="btn" type="button" id="copyJsonBtn">Copy JSON</button>
+              <button class="btn" type="button" id="copyPromptBtn">Copy AI context</button>
+              <button class="btn good" type="button" id="downloadBtn">Download profile</button>
+            </div>
+            <div class="profile-output">
+              <pre id="jsonOutput">Click “Build profile JSON”.</pre>
+              <pre id="promptOutput">Ryan AI context will appear here.</pre>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast">Saved</div>
+
+  <script>
+    const STORAGE_KEY = "ryan_user_profile_v3";
+    const SECTIONS = ["identity", "appearance", "work", "relationship", "personality", "values", "export"];
+
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+    function showToast(message) {
+      const toast = $("#toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.setTimeout(() => toast.classList.remove("show"), 1700);
+    }
+
+    function calculateAge(dobValue) {
+      if (!dobValue) return "";
+      const dob = new Date(dobValue + "T00:00:00");
+      if (Number.isNaN(dob.getTime())) return "";
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+      return age >= 0 ? String(age) : "";
+    }
+
+    function smartValue(field) {
+      const select = $("select", field);
+      const custom = $(".custom-input", field);
+      const note = $(".detail-pop textarea", field);
+      const selected = select ? select.value : "";
+      const customValue = custom && custom.classList.contains("show") ? custom.value.trim() : "";
+      const value = selected === "__custom" ? customValue : selected;
+      return {
+        value: value || "",
+        note: note ? note.value.trim() : ""
+      };
+    }
+
+    function setupSmartFields() {
+      $$(".smart-field.combo").forEach(field => {
+        const select = $("select", field);
+        const custom = $(".custom-input", field);
+        const noteToggle = $(".note-toggle", field);
+        const pop = $(".detail-pop", field);
+        let autoOpened = false;
+
+        select.addEventListener("change", () => {
+          const needsCustom = select.value === "__custom";
+          custom.classList.toggle("show", needsCustom);
+          if (needsCustom) custom.focus();
+
+          if (select.value && !autoOpened) {
+            pop.classList.add("show");
+            noteToggle.classList.add("active");
+            noteToggle.textContent = "note open";
+            autoOpened = true;
+          }
+          updateProgress();
+        });
+
+        noteToggle.addEventListener("click", () => {
+          pop.classList.toggle("show");
+          const active = pop.classList.contains("show");
+          noteToggle.classList.toggle("active", active);
+          noteToggle.textContent = active ? "note open" : "+ note";
+          if (active) $("textarea", pop).focus();
+        });
+
+        if (custom) custom.addEventListener("input", updateProgress);
+        const noteArea = $("textarea", pop);
+        if (noteArea) noteArea.addEventListener("input", updateProgress);
+      });
+    }
+
+    function setupChips() {
+      $$(".chips-wrap").forEach(section => {
+        const chips = $(".chips", section);
+        const addInput = $(".chip-add input", section);
+        const addBtn = $(".chip-add button", section);
+
+        chips.addEventListener("click", (event) => {
+          const chip = event.target.closest(".chip");
+          if (!chip) return;
+          chip.classList.toggle("active");
+          updateProgress();
+        });
+
+        function addChip() {
+          const value = addInput.value.trim();
+          if (!value) return;
+          const chip = document.createElement("span");
+          chip.className = "chip active custom-chip";
+          chip.textContent = value;
+          chips.appendChild(chip);
+          addInput.value = "";
+          updateProgress();
+        }
+        addBtn.addEventListener("click", addChip);
+        addInput.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            addChip();
+          }
+        });
+      });
+    }
+
+    function setupNav() {
+      $$(".nav-item").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const target = btn.dataset.target;
+          const el = document.getElementById(target);
+          if (!el) return;
+          $$(".nav-item").forEach(x => x.classList.remove("active"));
+          btn.classList.add("active");
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const id = entry.target.id;
+          $$(".nav-item").forEach(x => x.classList.toggle("active", x.dataset.target === id));
+        });
+      }, { rootMargin: "-35% 0px -55% 0px", threshold: 0.01 });
+      SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
+    }
+
+    function getTextFieldData() {
+      const data = {};
+      $$('input:not([readonly]):not(.custom-input), textarea').forEach(el => {
+        if (el.closest('.detail-pop')) return;
+        if (!el.name && !el.id) return;
+        data[el.name || el.id] = el.value.trim();
+      });
+      data.ageAuto = $("#ageAuto").value;
+      return data;
+    }
+
+    function getSmartFieldData() {
+      const data = {};
+      $$(".smart-field.combo").forEach(field => {
+        const key = field.dataset.key;
+        data[key] = smartValue(field);
+      });
+      return data;
+    }
+
+    function getChipData() {
+      const data = {};
+      $$(".chips-wrap").forEach(section => {
+        const key = section.dataset.chipSection;
+        data[key] = $$(".chip.active", section).map(chip => chip.textContent.trim());
+      });
+      return data;
+    }
+
+    function buildProfile() {
+      const profile = {
+        schema: "ryan_user_profile_v3",
+        profileType: "permanent_user_profile_only",
+        generatedAt: new Date().toISOString(),
+        user: getTextFieldData(),
+        smartFields: getSmartFieldData(),
+        tags: getChipData(),
+        separatedModules: {
+          removedFromThisProfile: [
+            "safety_intent_rules",
+            "ryan_master_persona_and_negative_prompts",
+            "current_target_or_woman_profile",
+            "temporary_case_snapshot_or_chat_analysis"
+          ],
+          reason: "Keep permanent user identity separate from Ryan behavior settings and temporary target/case data."
+        }
+      };
+      return profile;
+    }
+
+    function buildAIContext(profile) {
+      return [
+        "RYAN USER PROFILE CONTEXT V3",
+        "Use this as permanent user context only. Do not confuse it with a temporary target/woman profile or current case.",
+        "Be realistic, respectful, non-manipulative, and calibrated to the user's actual personality.",
+        "When a simple dropdown has an extra note, prioritize the note over the generic option.",
+        "",
+        JSON.stringify(profile, null, 2)
+      ].join("\n");
+    }
+
+    function setOutput() {
+      const profile = buildProfile();
+      $("#jsonOutput").textContent = JSON.stringify(profile, null, 2);
+      $("#promptOutput").textContent = buildAIContext(profile);
+      updateProgress();
+      return profile;
+    }
+
+    function isFilled(el) {
+      if (!el) return false;
+      return !!String(el.value || "").trim();
+    }
+
+    function countFields(category) {
+      let total = 0;
+      let filled = 0;
+
+      $$(`[data-category="${category}"]`).forEach(el => {
+        if (el.classList && el.classList.contains("smart-field")) {
+          total += 1;
+          const sv = smartValue(el);
+          if (sv.value || sv.note) filled += 1;
+          if (sv.note && category !== "power") {
+            // Notes are extra depth, but do not inflate mandatory completion.
+          }
+          return;
+        }
+
+        if (el.classList && el.classList.contains("chips-wrap")) {
+          total += 1;
+          if ($$(".chip.active", el).length) filled += 1;
+          return;
+        }
+
+        if (["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName)) {
+          total += 1;
+          if (isFilled(el)) filled += 1;
+        }
+      });
+
+      if (category === "power") {
+        $$(".detail-pop textarea").forEach(area => {
+          total += 1;
+          if (isFilled(area)) filled += 1;
+        });
+      }
+
+      return { total, filled, pct: total ? Math.round((filled / total) * 100) : 0 };
+    }
+
+    function sectionStatus(sectionId) {
+      const section = document.getElementById(sectionId);
+      if (!section) return "";
+      const required = $$('[data-required="true"]', section);
+      if (!required.length) {
+        const any = $$('input, select, textarea, .chip.active', section).some(el => {
+          if (el.classList && el.classList.contains("chip")) return true;
+          return isFilled(el);
+        });
+        return any ? "partial" : "";
+      }
+      const allRequiredFilled = required.every(el => {
+        if (el.closest(".smart-field")) {
+          const sv = smartValue(el.closest(".smart-field"));
+          return !!sv.value;
+        }
+        return isFilled(el);
+      });
+      return allRequiredFilled ? "done" : "partial";
+    }
+
+    function updateProgress() {
+      const dob = $("#dob").value;
+      $("#ageAuto").value = calculateAge(dob);
+
+      const foundation = countFields("foundation");
+      const depth = countFields("depth");
+      const power = countFields("power");
+      const overall = Math.round((foundation.pct * 0.55) + (depth.pct * 0.25) + (power.pct * 0.20));
+
+      $("#scorePct").textContent = overall + "%";
+      $("#ring").style.background = `conic-gradient(var(--accent) ${overall * 3.6}deg, rgba(255,255,255,.1) 0deg)`;
+      $("#foundationBar").style.width = foundation.pct + "%";
+      $("#depthBar").style.width = depth.pct + "%";
+      $("#powerBar").style.width = power.pct + "%";
+      $("#foundationPct").textContent = foundation.pct + "%";
+      $("#depthPct").textContent = depth.pct + "%";
+      $("#powerPct").textContent = power.pct + "%";
+
+      const title = $("#readinessTitle");
+      const copy = $("#readinessCopy");
+      if (foundation.pct < 70) {
+        title.textContent = "Profile not ready";
+        copy.textContent = "Complete the must-have foundation first. Ryan needs basic identity, relationship goal, and social wiring.";
+      } else if (overall < 70) {
+        title.textContent = "Usable, but still shallow";
+        copy.textContent = "Ryan can start advising, but notes and power data will make responses much more human.";
+      } else if (overall < 90) {
+        title.textContent = "Strong profile";
+        copy.textContent = "This is enough for useful personalized coaching and natural conversation strategy.";
+      } else {
+        title.textContent = "Elite profile";
+        copy.textContent = "Ryan has deep context. Advice can be very calibrated to the user’s real personality.";
+      }
+
+      SECTIONS.forEach(id => {
+        const dot = $("#dot-" + id);
+        if (!dot) return;
+        dot.className = "nav-dot";
+        const status = sectionStatus(id);
+        if (status) dot.classList.add(status);
+      });
+    }
+
+    function saveLocal() {
+      const profile = buildProfile();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+      showToast("Ryan profile saved locally");
+    }
+
+    function loadLocal() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) { showToast("No saved profile found"); return; }
+      try {
+        const profile = JSON.parse(raw);
+        const user = profile.user || {};
+        Object.entries(user).forEach(([key, value]) => {
+          const el = $(`[name="${key}"], #${key}`);
+          if (el && !el.readOnly) el.value = value || "";
+        });
+
+        const smart = profile.smartFields || {};
+        Object.entries(smart).forEach(([key, obj]) => {
+          const field = $(`.smart-field[data-key="${key}"]`);
+          if (!field) return;
+          const select = $("select", field);
+          const custom = $(".custom-input", field);
+          const pop = $(".detail-pop", field);
+          const noteToggle = $(".note-toggle", field);
+          const note = $("textarea", pop);
+          const value = typeof obj === "string" ? obj : (obj.value || "");
+          const noteVal = typeof obj === "object" ? (obj.note || "") : "";
+          const optionExists = Array.from(select.options).some(o => o.value === value || o.textContent === value);
+          if (optionExists) {
+            select.value = value;
+          } else if (value) {
+            select.value = "__custom";
+            custom.classList.add("show");
+            custom.value = value;
+          }
+          if (noteVal) {
+            note.value = noteVal;
+            pop.classList.add("show");
+            noteToggle.classList.add("active");
+            noteToggle.textContent = "note open";
+          }
+        });
+
+        const tags = profile.tags || {};
+        Object.entries(tags).forEach(([key, values]) => {
+          const section = $(`.chips-wrap[data-chip-section="${key}"]`);
+          if (!section || !Array.isArray(values)) return;
+          const chips = $(".chips", section);
+          values.forEach(value => {
+            let chip = $$(".chip", section).find(c => c.textContent.trim() === value);
+            if (!chip) {
+              chip = document.createElement("span");
+              chip.className = "chip custom-chip";
+              chip.textContent = value;
+              chips.appendChild(chip);
+            }
+            chip.classList.add("active");
+          });
+        });
+
+        setOutput();
+        showToast("Saved Ryan profile loaded");
+      } catch (err) {
+        console.error(err);
+        showToast("Could not load saved profile");
+      }
+    }
+
+    function resetAll() {
+      if (!confirm("Reset this profile form?")) return;
+      $$('input, textarea').forEach(el => { if (!el.readOnly) el.value = ""; });
+      $$('select').forEach(el => { el.selectedIndex = 0; });
+      $$(".chip").forEach(chip => chip.classList.remove("active"));
+      $$(".custom-chip").forEach(chip => chip.remove());
+      $$(".custom-input").forEach(el => el.classList.remove("show"));
+      $$(".detail-pop").forEach(el => el.classList.remove("show"));
+      $$(".note-toggle").forEach(btn => { btn.classList.remove("active"); btn.textContent = "+ note"; });
+      $("#jsonOutput").textContent = "Click “Build profile JSON”.";
+      $("#promptOutput").textContent = "Ryan AI context will appear here.";
+      updateProgress();
+      showToast("Profile form reset");
+    }
+
+    async function copyText(text, label) {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast(label + " copied");
+      } catch (_) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+        showToast(label + " copied");
+      }
+    }
+
+    function downloadProfile() {
+      const profile = setOutput();
+      const blob = new Blob([JSON.stringify(profile, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ryan_user_profile_v3.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast("Profile downloaded");
+    }
+
+    function setupEvents() {
+      setupSmartFields();
+      setupChips();
+      setupNav();
+      $$('input, select, textarea').forEach(el => {
+        el.addEventListener('input', updateProgress);
+        el.addEventListener('change', updateProgress);
+      });
+      $("#saveBtn").addEventListener("click", saveLocal);
+      $("#loadBtn").addEventListener("click", loadLocal);
+      $("#resetBtn").addEventListener("click", resetAll);
+      $("#buildBtn").addEventListener("click", () => { setOutput(); showToast("Ryan profile built"); });
+      $("#copyJsonBtn").addEventListener("click", () => copyText($("#jsonOutput").textContent, "JSON"));
+      $("#copyPromptBtn").addEventListener("click", () => copyText($("#promptOutput").textContent, "AI context"));
+      $("#downloadBtn").addEventListener("click", downloadProfile);
+      updateProgress();
+    }
+
+    document.addEventListener("DOMContentLoaded", setupEvents);
+  </script>
+</body>
+</html>

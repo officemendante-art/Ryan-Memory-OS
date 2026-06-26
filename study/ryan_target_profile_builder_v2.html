@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ryan Target Profile Builder V2 — Target Container</title>
+  <style>
+    :root {
+      --bg: #05060a;
+      --bg2: #090b12;
+      --panel: rgba(18, 20, 30, .94);
+      --panel2: rgba(25, 28, 41, .96);
+      --panel3: rgba(10, 12, 20, .96);
+      --text: #f6f7fb;
+      --muted: #aeb7cd;
+      --soft: #7d879d;
+      --line: rgba(255,255,255,.11);
+      --line2: rgba(255,255,255,.18);
+      --accent: #8b7cf6;
+      --accent2: #a78bfa;
+      --green: #22c55e;
+      --blue: #38bdf8;
+      --amber: #f59e0b;
+      --red: #fb7185;
+      --radius: 22px;
+      --shadow: 0 26px 90px rgba(0,0,0,.5);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 14% 8%, rgba(139,124,246,.22), transparent 30%),
+        radial-gradient(circle at 82% 18%, rgba(34,197,94,.12), transparent 28%),
+        radial-gradient(circle at 70% 88%, rgba(56,189,248,.09), transparent 32%),
+        linear-gradient(180deg, #05060a, #060811 52%, #05060a);
+    }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    .app { max-width: 1440px; margin: 0 auto; padding: 26px; }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 18px;
+    }
+    .hero-card, .side-card, .panel, .section {
+      background: linear-gradient(180deg, rgba(28,31,44,.94), rgba(15,17,26,.94));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .hero-card { padding: 24px; position: relative; }
+    .eyebrow { color: var(--accent2); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; font-weight: 800; }
+    h1 { margin: 7px 0 8px; font-size: clamp(28px, 4vw, 52px); letter-spacing: -.055em; line-height: .98; }
+    .lead { max-width: 860px; margin: 0; color: var(--muted); font-size: 15px; line-height: 1.65; }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    .pill {
+      border: 1px solid var(--line2);
+      background: rgba(255,255,255,.045);
+      color: #dde2ef;
+      padding: 8px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 750;
+    }
+    .pill.green { color: #bbf7d0; border-color: rgba(34,197,94,.36); background: rgba(34,197,94,.10); }
+    .pill.blue { color: #bae6fd; border-color: rgba(56,189,248,.32); background: rgba(56,189,248,.10); }
+    .pill.amber { color: #fde68a; border-color: rgba(245,158,11,.35); background: rgba(245,158,11,.10); }
+    .side-card { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat { border: 1px solid var(--line); background: rgba(255,255,255,.04); border-radius: 18px; padding: 14px; }
+    .stat strong { display: block; font-size: 22px; line-height: 1; margin-bottom: 6px; }
+    .stat span { color: var(--muted); font-size: 12px; }
+    .layout { display: grid; grid-template-columns: 310px 1fr; gap: 18px; align-items: start; }
+    .sidebar { position: sticky; top: 18px; display: flex; flex-direction: column; gap: 14px; }
+    .panel { padding: 14px; }
+    .panel h3 { margin: 0 0 10px; font-size: 14px; letter-spacing: -.01em; }
+    .target-list { display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow: auto; padding-right: 2px; }
+    .target-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      border-radius: 16px;
+      padding: 12px;
+      text-align: left;
+    }
+    .target-item.active { border-color: rgba(139,124,246,.75); background: rgba(139,124,246,.14); }
+    .target-item .name { font-weight: 850; font-size: 13px; }
+    .target-item .meta { color: var(--soft); font-size: 11px; margin-top: 2px; }
+    .badge { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line2); border-radius: 999px; padding: 4px 8px; font-size: 11px; font-weight: 850; color: #dbe1ee; background: rgba(255,255,255,.05); white-space: nowrap; }
+    .badge.must { color: #fecaca; border-color: rgba(251,113,133,.42); background: rgba(251,113,133,.11); }
+    .badge.opt { color: #c7d2fe; border-color: rgba(139,124,246,.38); background: rgba(139,124,246,.10); }
+    .badge.auto { color: #bbf7d0; border-color: rgba(34,197,94,.38); background: rgba(34,197,94,.10); }
+    .badge.dev { color: #fde68a; border-color: rgba(245,158,11,.35); background: rgba(245,158,11,.10); }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .btn {
+      border: 1px solid var(--line2);
+      background: rgba(255,255,255,.055);
+      color: var(--text);
+      border-radius: 14px;
+      min-height: 40px;
+      padding: 10px 12px;
+      font-weight: 850;
+      font-size: 12px;
+    }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), #6d5df2); border-color: rgba(255,255,255,.2); }
+    .btn.green { background: rgba(34,197,94,.13); color: #bbf7d0; border-color: rgba(34,197,94,.35); }
+    .btn.red { background: rgba(251,113,133,.10); color: #fecaca; border-color: rgba(251,113,133,.35); }
+    .btn.small { min-height: 32px; padding: 7px 9px; border-radius: 11px; font-size: 11px; }
+    .btn.ghost { background: transparent; }
+    .content { display: flex; flex-direction: column; gap: 16px; }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.045), transparent);
+    }
+    .title-wrap { display: flex; gap: 12px; align-items: center; min-width: 0; }
+    .icon {
+      width: 42px; height: 42px; border-radius: 14px;
+      display: grid; place-items: center;
+      border: 1px solid rgba(139,124,246,.32);
+      background: rgba(139,124,246,.18);
+      flex: 0 0 auto;
+    }
+    .section-title { margin: 0; font-size: 17px; letter-spacing: -.025em; }
+    .section-sub { margin: 4px 0 0; color: var(--muted); font-size: 13px; line-height: 1.35; }
+    .section-body { padding: 18px 20px 20px; }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; }
+    .span-12 { grid-column: span 12; }
+    .span-8 { grid-column: span 8; }
+    .span-6 { grid-column: span 6; }
+    .span-4 { grid-column: span 4; }
+    .span-3 { grid-column: span 3; }
+    .field, .smart-field, .textarea-field, .chip-box {
+      border: 1px solid var(--line);
+      background: rgba(5,7,14,.42);
+      border-radius: 18px;
+      padding: 12px;
+      min-width: 0;
+    }
+    .field label, .smart-label, .textarea-field label, .chip-box label {
+      display: flex; justify-content: space-between; gap: 8px;
+      color: #dfe4ff;
+      font-size: 12px;
+      font-weight: 850;
+      margin-bottom: 8px;
+    }
+    .hint { display: block; color: var(--soft); font-size: 11px; font-weight: 600; line-height: 1.35; margin-top: 7px; }
+    .req { color: var(--red); }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,.13);
+      background: rgba(3,5,11,.82);
+      color: var(--text);
+      border-radius: 14px;
+      outline: none;
+      padding: 12px 12px;
+      min-height: 44px;
+      transition: .16s ease;
+    }
+    input:focus, select:focus, textarea:focus { border-color: rgba(139,124,246,.74); box-shadow: 0 0 0 4px rgba(139,124,246,.13); }
+    textarea { min-height: 90px; resize: vertical; line-height: 1.45; }
+    .smart-controls { display: grid; grid-template-columns: .92fr 1fr auto; gap: 8px; align-items: center; }
+    .custom-input { min-width: 0; }
+    .note-stack { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .note-card { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: start; }
+    .note-card textarea { min-height: 76px; border-color: rgba(56,189,248,.25); background: rgba(56,189,248,.055); }
+    .mini-label { color: var(--soft); font-size: 11px; margin: 0 0 6px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { border: 1px solid var(--line2); background: rgba(255,255,255,.05); color: var(--muted); border-radius: 999px; padding: 8px 10px; font-size: 12px; font-weight: 800; user-select: none; }
+    .chip.active { background: rgba(139,124,246,.2); border-color: rgba(139,124,246,.72); color: #fff; }
+    .chip-add { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 10px; }
+    .memory-panel { border: 1px dashed rgba(139,124,246,.32); background: rgba(139,124,246,.06); border-radius: 18px; padding: 14px; }
+    .memory-panel h4 { margin: 0 0 8px; font-size: 13px; }
+    .memory-lines { display: grid; gap: 8px; color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .export-box { min-height: 260px; white-space: pre; overflow: auto; font-size: 12px; line-height: 1.5; background: #05070d; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .notice {
+      border: 1px solid rgba(56,189,248,.25);
+      background: rgba(56,189,248,.08);
+      border-radius: 18px;
+      padding: 12px;
+      color: #d7f1ff;
+      line-height: 1.48;
+      font-size: 13px;
+    }
+    .dev-area summary { cursor: pointer; color: #f1d58b; font-weight: 850; font-size: 13px; }
+    .dev-area { border: 1px solid rgba(245,158,11,.26); background: rgba(245,158,11,.06); border-radius: 18px; padding: 14px; }
+    .footer-actions {
+      position: sticky;
+      bottom: 0;
+      z-index: 5;
+      display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap;
+      padding: 14px 16px;
+      background: linear-gradient(180deg, rgba(5,6,10,.72), rgba(5,6,10,.95));
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 -12px 40px rgba(0,0,0,.30);
+    }
+    .toast { position: fixed; right: 18px; bottom: 18px; background: rgba(18,20,30,.98); border: 1px solid rgba(34,197,94,.36); color: #d8ffe2; padding: 12px 14px; border-radius: 16px; box-shadow: var(--shadow); transform: translateY(140%); transition: .2s ease; z-index: 30; max-width: 420px; }
+    .toast.show { transform: translateY(0); }
+    .kbd { border: 1px solid var(--line2); border-bottom-color: rgba(255,255,255,.28); background: rgba(255,255,255,.06); border-radius: 6px; padding: 2px 6px; color: #dbe1ee; font-size: 11px; font-weight: 850; }
+    @media (max-width: 1050px) {
+      .hero, .layout, .split { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .span-8, .span-6, .span-4, .span-3 { grid-column: span 12; }
+    }
+    @media (max-width: 620px) {
+      .app { padding: 14px; }
+      .smart-controls { grid-template-columns: 1fr; }
+      .stat-grid { grid-template-columns: 1fr; }
+      .section-header { align-items: flex-start; flex-direction: column; }
+      .footer-actions { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="eyebrow">Ryan OS · Target Container Builder V2</div>
+        <h1>One target. One clean living memory.</h1>
+        <p class="lead">This screen is only for building the target container. The user profile, Ryan master personality, knowledge brain, and live chat engine are separate. Target data stays compact, editable, and ready for AI auto-updates later.</p>
+        <div class="pill-row">
+          <span class="pill green">Auto-growing container design</span>
+          <span class="pill blue">Alias required · real name optional</span>
+          <span class="pill amber">Smart fields: dropdown + custom + notes</span>
+          <span class="pill">Export compact JSON packet</span>
+        </div>
+      </div>
+      <div class="side-card">
+        <div class="stat-grid">
+          <div class="stat"><strong id="statTargets">0</strong><span>target containers</span></div>
+          <div class="stat"><strong id="statFacts">0</strong><span>profile signals saved</span></div>
+          <div class="stat"><strong id="statCompleteness">0%</strong><span>current profile strength</span></div>
+          <div class="stat"><strong id="statUpdated">—</strong><span>last updated</span></div>
+        </div>
+        <div class="notice">Future chat flow: user talks to Ryan normally → Ryan extracts facts → updates this target container → compresses memory → retrieves only useful data when needed.</div>
+      </div>
+    </section>
+
+    <main class="layout">
+      <aside class="sidebar">
+        <div class="panel">
+          <h3>Targets</h3>
+          <div class="target-list" id="targetList"></div>
+          <div class="btn-row" style="margin-top:12px;">
+            <button class="btn primary" id="newTargetBtn">+ New target</button>
+            <button class="btn" id="duplicateBtn">Duplicate</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Quick navigation</h3>
+          <div class="btn-row">
+            <a class="btn ghost" href="#identity">Identity</a>
+            <a class="btn ghost" href="#context">Context</a>
+            <a class="btn ghost" href="#details">Details</a>
+            <a class="btn ghost" href="#signals">Signals</a>
+            <a class="btn ghost" href="#memory">Memory</a>
+            <a class="btn ghost" href="#export">Export</a>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Storage concept</h3>
+          <div class="memory-lines">
+            <div><span class="badge auto">Core</span> Small target profile JSON.</div>
+            <div><span class="badge auto">Ledger</span> Atomic facts with source/date/confidence.</div>
+            <div><span class="badge auto">Memory</span> AI-compressed summary, not full chat dump.</div>
+            <div><span class="badge auto">Patterns</span> Repeated behavior signals over time.</div>
+          </div>
+        </div>
+      </aside>
+
+      <section class="content">
+        <section class="section" id="identity">
+          <div class="section-header">
+            <div class="title-wrap">
+              <div class="icon">🪪</div>
+              <div>
+                <h2 class="section-title">1. Target identity container</h2>
+                <p class="section-sub">Keep one container per target. Alias/label is required. Real name is optional and can be added later.</p>
+              </div>
+            </div>
+            <span class="badge must">Must have</span>
+          </div>
+          <div class="section-body">
+            <div class="grid">
+              <div class="field span-4">
+                <label>Target title / alias <span class="req">required</span></label>
+                <input data-key="alias" placeholder="e.g. Aditi, Bank Girl, College Crush" />
+                <span class="hint">This is the human label shown in the app.</span>
+              </div>
+              <div class="field span-4">
+                <label>Real name, if known <span>optional</span></label>
+                <input data-key="realName" placeholder="e.g. Aditi Sharma" />
+                <span class="hint">Can stay empty. Add later only if naturally known.</span>
+              </div>
+              <div class="field span-4">
+                <label>Target status <span>optional</span></label>
+                <select data-key="status">
+                  <option value="">Select…</option>
+                  <option>Exploring / unknown</option>
+                  <option>Seen in real life only</option>
+                  <option>Known acquaintance</option>
+                  <option>Talking stage</option>
+                  <option>Dating</option>
+                  <option>Paused / no active pursuit</option>
+                </select>
+              </div>
+              <div class="field span-6">
+                <label>Age range guess <span>optional</span></label>
+                <select data-key="ageRange">
+                  <option value="">Select…</option>
+                  <option>18–22</option>
+                  <option>23–27</option>
+                  <option>28–32</option>
+                  <option>33–39</option>
+                  <option>40+</option>
+                  <option>Unknown adult</option>
+                </select>
+              </div>
+              <div class="field span-6">
+                <label>Exact age, if known <span>optional</span></label>
+                <input data-key="exactAge" type="number" min="18" placeholder="e.g. 26" />
+              </div>
+              <input data-key="id" type="hidden" />
+              <div class="textarea-field span-12">
+                <label>One-line description <span>optional but useful</span></label>
+                <textarea data-key="description" placeholder="e.g. Works at my bank branch, polite and intelligent, I visit once or twice a month."></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="context">
+          <div class="section-header">
+            <div class="title-wrap">
+              <div class="icon">🌍</div>
+              <div>
+                <h2 class="section-title">2. How you know her & real-world context</h2>
+                <p class="section-sub">This controls what is realistic, natural, and possible. Every smart field allows dropdown + custom answer + multiple notes.</p>
+              </div>
+            </div>
+            <span class="badge opt">Optional / high value</span>
+          </div>
+          <div class="section-body">
+            <div class="grid">
+              <div class="smart-field span-6" data-smart="knownFrom">
+                <div class="smart-label">Where do you know her from? <span>smart field</span></div>
+                <div class="smart-controls">
+                  <select data-part="select"><option value="">Dropdown</option><option>Bank / service place</option><option>Office / work</option><option>College / class</option><option>Friend circle</option><option>Instagram / social media</option><option>Dating app</option><option>Neighbourhood / society</option><option>Already known personally</option></select>
+                  <input data-part="custom" class="custom-input" placeholder="Custom answer" />
+                  <button class="btn small" data-action="add-note" type="button">+ note</button>
+                </div>
+                <div class="note-stack" data-part="notes"></div>
+              </div>
+              <div class="smart-field span-6" data-smart="naturalProximity">
+                <div class="smart-label">How often can you naturally meet? <span>smart field</span></div>
+                <div class="smart-controls">
+                  <select data-part="select"><option value="">Dropdown</option><option>Daily</option><option>Few times a week</option><option>Weekly</option><option>Once/twice a month</option><option>Rarely</option><option>Online only</option><option>Unknown</option></select>
+                  <input data-part="custom" class="custom-input" placeholder="Custom frequency" />
+                  <button class="btn small" data-action="add-note" type="button">+ note</button>
+                </div>
+                <div class="note-stack" data-part="notes"></div>
+              </div>
+              <div class="smart-field span-6" data-smart="contextBoundaries">
+                <div class="smart-label">Boundary / caution context <span>smart field</span></div>
+                <div class="smart-controls">
+                  <select data-part="select"><option value="">Dropdown</option><option>Professional setting</option><option>Customer / employee dynamic</option><option>Workplace dynamic</option><option>Mutual friends involved</option><option>Public place only</option><option>Purely online</option><option>No special caution</option></select>
+                  <input data-part="custom" class="custom-input" placeholder="Custom context" />
+                  <button class="btn small" data-action="add-note" type="button">+ note</button>
+                </div>
+                <div class="note-stack" data-part="notes"></div>
+              </div>
+              <div class="smart-field span-6" data-smart="familiarity">
+                <div class="smart-label">Current familiarity level <span>smart field</span></div>
+                <div class="smart-controls">
+                  <select data-part="select"><option value="">Dropdown</option><option>She does not know me</option><option>She has seen me</option><option>She knows who I am</option><option>Small professional talk only</option><option>Casual conversation started</option><option>Regular conversation</option><option>Emotionally close</option></select>
+                  <input data-part="custom" class="custom-input" placeholder="Custom level" />
+                  <button class="btn small" data-action="add-note" type="button">+ note</button>
+                </div>
+                <div class="note-stack" data-part="notes"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="details">
+          <div class="section-header">
+            <div class="title-wrap">
+              <div class="icon">🧩</div>
+              <div>
+                <h2 class="section-title">3. Known details & personality map</h2>
+                <p class="section-sub">This starts empty for unknown targets. It grows whenever you learn real information.</p>
+              </div>
+            </div>
+            <span class="badge auto">Auto-growing later</span>
+          </div>
+          <div class="section-body">
+            <div class="grid">
+              <div class="chip-box span-6" data-chipbox="interests">
+                <label>Interests / hobbies / tastes <span>tap or add</span></label>
+                <div class="chips"><span class="chip">Books</span><span class="chip">Romance books</span><span class="chip">Movies</span><span class="chip">Music</span><span class="chip">Travel</span><span class="chip">Food</span><span class="chip">Ice cream</span><span class="chip">Fitness</span><span class="chip">Art</span><span class="chip">Business</span></div>
+                <div class="chip-add"><input placeholder="Add custom interest" /><button class="btn small" type="button">Add</button></div>
+              </div>
+              <div class="chip-box span-6" data-chipbox="favoriteDetails">
+                <label>Favorite small details <span>tap or add</span></label>
+                <div class="chips"><span class="chip">Chocolate ice cream</span><span class="chip">Sky blue</span><span class="chip">Coffee</span><span class="chip">Tea</span><span class="chip">Dogs</span><span class="chip">Cats</span><span class="chip">Rain</span><span class="chip">Long drives</span></div>
+                <div class="chip-add"><input placeholder="Add custom detail" /><button class="btn small" type="button">Add</button></div>
+              </div>
+              <div class="smart-field span-6" data-smart="vibeGuess">
+                <div class="smart-label">Vibe / personality guess <span>smart field</span></div>
+                <div class="smart-controls">
+                  <select data-part="select"><option value="">Dropdown</option><option>Warm / friendly</option><option>Reserved / private</option><option>Intelligent / serious</option><option>Playful / expressive</option><option>Ambitious / career-focused</option><option>Calm / soft-spoken</option><option>High social energy</option><option>Unknown</option></select>
+                  <input data-part="custom" class="custom-input" placeholder="Custom vibe" />
+                  <button class="btn small" data-action="add-note" type="button">+ note</button>
+                </div>
+                <div class="note-stack" data-part="notes"></div>
+              </div>
+              <div class="smart-field span-6" data-smart="communicationStyle">
+                <div class="smart-label">Communication style observed <span>smart field</span></div>
+                <div class="smart-controls">
+                  <select data-part="select"><option value="">Dropdown</option><option>Professional only</option><option>Polite but short</option><option>Smiles and engages</option><option>Asks questions back</option><option>Texts fast</option><option>Texts slowly</option><option>Very expressive</option><option>Unknown</option></select>
+                  <input data-part="custom" class="custom-input" placeholder="Custom style" />
+                  <button class="btn small" data-action="add-note" type="button">+ note</button>
+                </div>
+                <div class="note-stack" data-part="notes"></div>
+              </div>
+              <div class="textarea-field span-12">
+                <label>Open notes about her <span>optional</span></label>
+                <textarea data-key="openNotes" placeholder="Any real, naturally learned information. Keep facts separate from assumptions."></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="signals">
+          <div class="section-header">
+            <div class="title-wrap">
+              <div class="icon">📡</div>
+              <div>
+                <h2 class="section-title">4. Signals, state & repeated patterns</h2>
+                <p class="section-sub">Not a chat dump. This section stores the current useful picture: what signals exist, what changed, and what patterns repeat.</p>
+              </div>
+            </div>
+            <span class="badge opt">Profile strength</span>
+          </div>
+          <div class="section-body">
+            <div class="grid">
+              <div class="chip-box span-6" data-chipbox="positiveSignals">
+                <label>Positive signals observed <span>tap or add</span></label>
+                <div class="chips"><span class="chip">Smiles naturally</span><span class="chip">Remembers me</span><span class="chip">Asks questions back</span><span class="chip">Continues conversation</span><span class="chip">Laughs easily</span><span class="chip">Initiates contact</span><span class="chip">Shares personal details</span></div>
+                <div class="chip-add"><input placeholder="Add custom positive signal" /><button class="btn small" type="button">Add</button></div>
+              </div>
+              <div class="chip-box span-6" data-chipbox="frictionSignals">
+                <label>Friction / uncertainty signals <span>tap or add</span></label>
+                <div class="chips"><span class="chip">Only professional</span><span class="chip">Short replies</span><span class="chip">Does not ask back</span><span class="chip">Avoids extra talk</span><span class="chip">Busy environment</span><span class="chip">Mixed signals</span><span class="chip">Unknown status</span></div>
+                <div class="chip-add"><input placeholder="Add custom uncertainty" /><button class="btn small" type="button">Add</button></div>
+              </div>
+              <div class="textarea-field span-6">
+                <label>Current relationship/conversation state <span>compact</span></label>
+                <textarea data-key="currentState" placeholder="e.g. Only professional bank interactions so far. No personal conversation yet."></textarea>
+              </div>
+              <div class="textarea-field span-6">
+                <label>Repeated pattern Ryan should watch <span>optional</span></label>
+                <textarea data-key="patterns" placeholder="e.g. She smiles when greeting but never extends conversation. She remembers documents/details."></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="memory">
+          <div class="section-header">
+            <div class="title-wrap">
+              <div class="icon">🧠</div>
+              <div>
+                <h2 class="section-title">5. Target memory engine preview</h2>
+                <p class="section-sub">This is not manual profile filling in the final app. It shows how Ryan will compress target knowledge in the background.</p>
+              </div>
+            </div>
+            <span class="badge auto">Internal AI layer</span>
+          </div>
+          <div class="section-body">
+            <div class="memory-panel">
+              <h4>Compressed target memory</h4>
+              <div class="memory-lines" id="compressedPreview">
+                <div>No profile memory yet. Add target alias and a few details.</div>
+              </div>
+            </div>
+            <div class="dev-area" style="margin-top:12px;">
+              <details>
+                <summary>Developer memory schema + optional extraction demo</summary>
+                <div class="notice" style="margin:12px 0;">Final build should update this container from normal Ryan chat automatically. This collapsed demo exists only to test the storage idea without a backend.</div>
+                <div class="textarea-field" style="margin-bottom:12px;">
+                  <label>Raw intel test <span>prototype only</span></label>
+                  <textarea id="rawIntel" placeholder="Example: Today I learned Aditi likes romance books, chocolate ice cream, and sky blue. She smiled and asked what I do for work."></textarea>
+                  <div class="btn-row" style="margin-top:10px;"><button class="btn green" id="simulateIntelBtn" type="button">Simulate auto-extract to profile</button><button class="btn" id="clearIntelBtn" type="button">Clear</button></div>
+                </div>
+                <pre class="mono" style="white-space:pre-wrap;color:#d7d9e8;font-size:12px;line-height:1.5;">target_container = {
+  id,
+  alias,
+  real_name_optional,
+  core_profile: {},
+  smart_fields: {},
+  facts_ledger: [
+    { fact, category, source: "user_chat|manual", confidence, date, evidence, status }
+  ],
+  compressed_memory: {
+    one_line,
+    current_state,
+    interests,
+    signals,
+    uncertainties,
+    repeated_patterns,
+    last_updated
+  },
+  retrieval_tags: [],
+  version_history: []
+}</pre>
+              </details>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="export">
+          <div class="section-header">
+            <div class="title-wrap">
+              <div class="icon">📦</div>
+              <div>
+                <h2 class="section-title">6. Export target container</h2>
+                <p class="section-sub">Compact JSON can be passed to Ryan, another AI, Codex, or a future backend database.</p>
+              </div>
+            </div>
+            <span class="badge dev">Database ready</span>
+          </div>
+          <div class="section-body">
+            <div class="btn-row" style="margin-bottom:12px;">
+              <button class="btn primary" id="exportBtn" type="button">Generate target JSON</button>
+              <button class="btn" id="copyJsonBtn" type="button">Copy JSON</button>
+              <button class="btn" id="downloadJsonBtn" type="button">Download JSON</button>
+              <button class="btn" id="importJsonBtn" type="button">Import JSON</button>
+              <input id="importFile" type="file" accept="application/json" style="display:none" />
+            </div>
+            <textarea class="export-box mono" id="exportBox" readonly placeholder="Target JSON will appear here..."></textarea>
+          </div>
+        </section>
+
+        <div class="footer-actions">
+          <div><span class="kbd">Autosave</span> <span style="color:var(--muted);font-size:12px;">local browser storage · target containers stay separate</span></div>
+          <div class="btn-row"><button class="btn green" id="saveBtn" type="button">Save container</button><button class="btn red" id="deleteBtn" type="button">Delete target</button></div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const STORE_KEY = 'ryan_target_containers_v2';
+    const $ = (s, root=document) => root.querySelector(s);
+    const $$ = (s, root=document) => [...root.querySelectorAll(s)];
+    let targets = [];
+    let activeId = null;
+
+    function uid() { return 'tgt_' + Math.random().toString(36).slice(2, 8) + '_' + Date.now().toString(36).slice(-5); }
+    function nowISO() { return new Date().toISOString(); }
+    function today() { return new Date().toLocaleDateString(undefined, { day:'2-digit', month:'short', year:'numeric' }); }
+    function toast(msg) { const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2100); }
+    function blankTarget(alias='New Target') {
+      const id = uid();
+      return { id, alias, realName:'', status:'Exploring / unknown', ageRange:'', exactAge:'', description:'', openNotes:'', currentState:'', patterns:'',
+        smart: {}, chips: {}, factsLedger: [], compressedMemory: {}, createdAt: nowISO(), updatedAt: nowISO(), version: 1 };
+    }
+    function loadStore() {
+      try { targets = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch { targets = []; }
+      if (!targets.length) targets = [blankTarget('Aditi')];
+      activeId = targets[0].id;
+      renderTargetList(); loadActiveToForm(); updateStats();
+    }
+    function saveStore() { localStorage.setItem(STORE_KEY, JSON.stringify(targets)); }
+    function active() { return targets.find(t => t.id === activeId) || targets[0]; }
+    function getField(key) { return $(`[data-key="${key}"]`); }
+
+    function renderTargetList() {
+      const list = $('#targetList'); list.innerHTML = '';
+      targets.forEach(t => {
+        const b = document.createElement('button');
+        b.className = 'target-item' + (t.id === activeId ? ' active' : '');
+        b.innerHTML = `<div><div class="name">${escapeHtml(t.alias || 'Untitled target')}</div><div class="meta">${(t.status || 'unknown')} · ${signalCount(t)} signals</div></div><span class="badge">${(t.ageRange || 'age ?')}</span>`;
+        b.onclick = () => { collectFormToActive(); activeId = t.id; renderTargetList(); loadActiveToForm(); updateStats(); };
+        list.appendChild(b);
+      });
+    }
+    function signalCount(t){ return Object.values(t.chips || {}).flat().length + Object.keys(t.smart || {}).filter(k => hasSmartValue(t.smart[k])).length + (t.factsLedger||[]).length; }
+    function hasSmartValue(s){ return s && (s.select || s.custom || (s.notes || []).some(Boolean)); }
+    function escapeHtml(str='') { return String(str).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c])); }
+
+    function clearForm() {
+      $$('[data-key]').forEach(el => el.value = '');
+      $$('.smart-field').forEach(sf => { $('[data-part="select"]', sf).value=''; $('[data-part="custom"]', sf).value=''; $('[data-part="notes"]', sf).innerHTML=''; });
+      $$('.chip').forEach(c => c.classList.remove('active'));
+      $('#rawIntel').value = '';
+    }
+    function loadActiveToForm() {
+      clearForm();
+      const t = active(); if (!t) return;
+      ['alias','realName','status','ageRange','exactAge','id','description','openNotes','currentState','patterns'].forEach(k => { const el = getField(k); if (el) el.value = t[k] || ''; });
+      $$('.smart-field').forEach(sf => {
+        const key = sf.dataset.smart; const data = (t.smart || {})[key] || {};
+        $('[data-part="select"]', sf).value = data.select || '';
+        $('[data-part="custom"]', sf).value = data.custom || '';
+        const stack = $('[data-part="notes"]', sf); stack.innerHTML = '';
+        (data.notes || []).forEach(n => addNoteCard(stack, n));
+      });
+      $$('.chip-box').forEach(box => {
+        const key = box.dataset.chipbox; const values = new Set((t.chips || {})[key] || []);
+        $$('.chip', box).forEach(ch => ch.classList.toggle('active', values.has(ch.textContent.trim())));
+      });
+      updateCompressedPreview();
+    }
+    function collectFormToActive() {
+      const t = active(); if (!t) return;
+      ['alias','realName','status','ageRange','exactAge','description','openNotes','currentState','patterns'].forEach(k => { const el = getField(k); if (el) t[k] = el.value.trim(); });
+      t.id = t.id || getField('id')?.value || uid();
+      t.smart = t.smart || {};
+      $$('.smart-field').forEach(sf => {
+        const key = sf.dataset.smart;
+        t.smart[key] = {
+          select: $('[data-part="select"]', sf).value.trim(),
+          custom: $('[data-part="custom"]', sf).value.trim(),
+          notes: $$('textarea', $('[data-part="notes"]', sf)).map(x => x.value.trim()).filter(Boolean)
+        };
+      });
+      t.chips = t.chips || {};
+      $$('.chip-box').forEach(box => {
+        const key = box.dataset.chipbox;
+        t.chips[key] = $$('.chip.active', box).map(ch => ch.textContent.trim());
+      });
+      t.updatedAt = nowISO();
+      t.compressedMemory = buildCompressedMemory(t);
+    }
+    function addNoteCard(stack, value='') {
+      const div = document.createElement('div'); div.className = 'note-card';
+      div.innerHTML = `<textarea placeholder="Add deeper context for this field...">${escapeHtml(value)}</textarea><button class="btn small red" type="button">−</button>`;
+      $('button', div).onclick = () => { div.remove(); autoSave(); };
+      $('textarea', div).oninput = autoSave;
+      stack.appendChild(div);
+    }
+
+    function buildCompressedMemory(t) {
+      const smartLine = k => {
+        const s = (t.smart || {})[k] || {}; const parts = [s.select, s.custom, ...(s.notes || [])].filter(Boolean); return parts.join(' | ');
+      };
+      const interests = [...new Set([...(t.chips?.interests || []), ...(t.chips?.favoriteDetails || [])])];
+      const positives = t.chips?.positiveSignals || [];
+      const frictions = t.chips?.frictionSignals || [];
+      const facts = (t.factsLedger || []).map(f => f.fact).filter(Boolean).slice(-12);
+      return {
+        one_line: [t.alias, t.ageRange, smartLine('knownFrom'), smartLine('familiarity')].filter(Boolean).join(' · '),
+        identity: { alias: t.alias || '', real_name_known: !!t.realName, age_range: t.ageRange || '', status: t.status || '' },
+        context: { known_from: smartLine('knownFrom'), natural_proximity: smartLine('naturalProximity'), boundaries_context: smartLine('contextBoundaries'), familiarity: smartLine('familiarity') },
+        observed_traits: { vibe_guess: smartLine('vibeGuess'), communication_style: smartLine('communicationStyle') },
+        interests_and_small_details: interests,
+        positive_signals: positives,
+        uncertainty_or_friction: frictions,
+        current_state: t.currentState || '',
+        repeated_patterns: t.patterns || '',
+        recent_facts: facts,
+        updated_at: t.updatedAt || nowISO()
+      };
+    }
+    function buildExportPacket(t) {
+      collectFormToActive();
+      t = active();
+      return {
+        schema: 'ryan.target_container.v2',
+        id: t.id,
+        alias: t.alias || 'Untitled target',
+        real_name_optional: t.realName || '',
+        status: t.status || '',
+        created_at: t.createdAt,
+        updated_at: t.updatedAt,
+        core_profile: {
+          age_range_guess: t.ageRange || '',
+          exact_age_if_known: t.exactAge || '',
+          one_line_description: t.description || '',
+          open_notes: t.openNotes || ''
+        },
+        smart_fields: t.smart || {},
+        chip_memory: t.chips || {},
+        facts_ledger: t.factsLedger || [],
+        compressed_memory: buildCompressedMemory(t),
+        retrieval_tags: makeRetrievalTags(t),
+        token_policy: {
+          send_to_ai_by_default: ['id','alias','status','compressed_memory','retrieval_tags'],
+          retrieve_full_ledger_only_when_needed: true,
+          do_not_send_full_chat_history_by_default: true
+        }
+      };
+    }
+    function makeRetrievalTags(t) {
+      const vals = [t.alias, t.status, t.ageRange, ...Object.values(t.chips||{}).flat(), ...Object.values(t.smart||{}).flatMap(s => [s.select, s.custom])].filter(Boolean);
+      return [...new Set(vals.map(v => String(v).toLowerCase().replace(/[^a-z0-9\u0900-\u097F]+/g,'_').replace(/^_|_$/g,'')))].filter(Boolean).slice(0, 60);
+    }
+    function updateCompressedPreview() {
+      collectFormToActive();
+      const t = active(); const mem = buildCompressedMemory(t); const box = $('#compressedPreview');
+      const lines = [];
+      if (mem.one_line) lines.push(`<div><b>One-line:</b> ${escapeHtml(mem.one_line)}</div>`);
+      if (mem.interests_and_small_details.length) lines.push(`<div><b>Interests/small details:</b> ${escapeHtml(mem.interests_and_small_details.join(', '))}</div>`);
+      if (mem.positive_signals.length) lines.push(`<div><b>Positive signals:</b> ${escapeHtml(mem.positive_signals.join(', '))}</div>`);
+      if (mem.uncertainty_or_friction.length) lines.push(`<div><b>Uncertainty:</b> ${escapeHtml(mem.uncertainty_or_friction.join(', '))}</div>`);
+      if (mem.current_state) lines.push(`<div><b>Current state:</b> ${escapeHtml(mem.current_state)}</div>`);
+      if (mem.repeated_patterns) lines.push(`<div><b>Patterns:</b> ${escapeHtml(mem.repeated_patterns)}</div>`);
+      if (mem.recent_facts.length) lines.push(`<div><b>Recent facts:</b> ${escapeHtml(mem.recent_facts.join(' | '))}</div>`);
+      box.innerHTML = lines.length ? lines.join('') : '<div>No profile memory yet. Add target alias and a few details.</div>';
+    }
+    function autoSave() { collectFormToActive(); saveStore(); renderTargetList(); updateStats(); updateCompressedPreview(); }
+    function updateStats() {
+      const t = active();
+      $('#statTargets').textContent = targets.length;
+      $('#statFacts').textContent = t ? signalCount(t) : 0;
+      $('#statCompleteness').textContent = t ? calcCompleteness(t) + '%' : '0%';
+      $('#statUpdated').textContent = t?.updatedAt ? new Date(t.updatedAt).toLocaleDateString() : '—';
+    }
+    function calcCompleteness(t) {
+      let score = 0, max = 16;
+      if (t.alias) score += 2;
+      if (t.ageRange || t.exactAge) score += 1;
+      if (t.description) score += 1;
+      if (hasSmartValue(t.smart?.knownFrom)) score += 2;
+      if (hasSmartValue(t.smart?.naturalProximity)) score += 1;
+      if (hasSmartValue(t.smart?.familiarity)) score += 2;
+      if (hasSmartValue(t.smart?.vibeGuess)) score += 1;
+      if (hasSmartValue(t.smart?.communicationStyle)) score += 1;
+      if ((t.chips?.interests || []).length) score += 1;
+      if ((t.chips?.positiveSignals || []).length) score += 1;
+      if ((t.chips?.frictionSignals || []).length) score += 1;
+      if (t.currentState) score += 1;
+      if ((t.factsLedger || []).length) score += 1;
+      return Math.min(100, Math.round((score / max) * 100));
+    }
+    function simulateIntel() {
+      const text = $('#rawIntel').value.trim(); if (!text) return toast('Add raw intel first.');
+      const t = active();
+      t.factsLedger = t.factsLedger || [];
+      const fact = { fact: text, category: 'raw_user_intel', source: 'manual_prototype_later_ai_chat', confidence: 'user_provided', date: new Date().toISOString().slice(0,10), evidence: text, status: 'active' };
+      t.factsLedger.push(fact);
+      // lightweight deterministic extraction for prototype only
+      const lower = text.toLowerCase();
+      const addChip = (box, val) => { t.chips = t.chips || {}; t.chips[box] = [...new Set([...(t.chips[box] || []), val])]; };
+      if (lower.includes('ice cream')) addChip('interests', 'Ice cream');
+      if (lower.includes('chocolate')) addChip('favoriteDetails', 'Chocolate ice cream');
+      if (lower.includes('book')) addChip('interests', lower.includes('romance') ? 'Romance books' : 'Books');
+      if (lower.includes('sky blue') || lower.includes('blue')) addChip('favoriteDetails', 'Sky blue');
+      if (lower.includes('smile') || lower.includes('smiled')) addChip('positiveSignals', 'Smiles naturally');
+      if (lower.includes('asked')) addChip('positiveSignals', 'Asks questions back');
+      t.updatedAt = nowISO();
+      saveStore(); loadActiveToForm(); renderTargetList(); updateStats(); toast('Intel added to this target container.');
+    }
+
+    document.addEventListener('input', e => { if (e.target.matches('[data-key], .smart-field input, .smart-field select, textarea')) autoSave(); });
+    document.addEventListener('change', e => { if (e.target.matches('select, input')) autoSave(); });
+    document.addEventListener('click', e => {
+      const noteBtn = e.target.closest('[data-action="add-note"]');
+      if (noteBtn) { const sf = noteBtn.closest('.smart-field'); addNoteCard($('[data-part="notes"]', sf)); autoSave(); }
+      const chip = e.target.closest('.chip');
+      if (chip) { chip.classList.toggle('active'); autoSave(); }
+      const addBtn = e.target.closest('.chip-add .btn');
+      if (addBtn) {
+        const wrap = addBtn.closest('.chip-add'); const input = $('input', wrap); const val = input.value.trim(); if (!val) return;
+        const chipEl = document.createElement('span'); chipEl.className = 'chip active'; chipEl.textContent = val;
+        wrap.previousElementSibling.appendChild(chipEl); input.value=''; autoSave();
+      }
+    });
+    $('#newTargetBtn').onclick = () => { collectFormToActive(); const name = prompt('Target title / alias?', 'New Target') || 'New Target'; const t = blankTarget(name); targets.unshift(t); activeId=t.id; saveStore(); renderTargetList(); loadActiveToForm(); updateStats(); toast('New target container created.'); };
+    $('#duplicateBtn').onclick = () => { collectFormToActive(); const old = active(); const copy = JSON.parse(JSON.stringify(old)); copy.id=uid(); copy.alias=(copy.alias || 'Target') + ' copy'; copy.createdAt=nowISO(); copy.updatedAt=nowISO(); targets.unshift(copy); activeId=copy.id; saveStore(); renderTargetList(); loadActiveToForm(); updateStats(); toast('Target duplicated.'); };
+    $('#deleteBtn').onclick = () => { if (targets.length <= 1) return toast('Keep at least one target container.'); const t=active(); if (!confirm(`Delete target container: ${t.alias || t.id}?`)) return; targets = targets.filter(x => x.id !== t.id); activeId = targets[0].id; saveStore(); renderTargetList(); loadActiveToForm(); updateStats(); toast('Target deleted.'); };
+    $('#saveBtn').onclick = () => { autoSave(); toast('Target container saved.'); };
+    $('#exportBtn').onclick = () => { const packet = buildExportPacket(active()); $('#exportBox').value = JSON.stringify(packet, null, 2); autoSave(); toast('Target JSON generated.'); };
+    $('#copyJsonBtn').onclick = async () => { if (!$('#exportBox').value) $('#exportBtn').click(); await navigator.clipboard.writeText($('#exportBox').value); toast('JSON copied.'); };
+    $('#downloadJsonBtn').onclick = () => { if (!$('#exportBox').value) $('#exportBtn').click(); const t = active(); const blob = new Blob([$('#exportBox').value], {type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download = `ryan_target_${(t.alias||'target').replace(/[^a-z0-9]+/gi,'_').toLowerCase()}.json`; a.click(); URL.revokeObjectURL(a.href); };
+    $('#importJsonBtn').onclick = () => $('#importFile').click();
+    $('#importFile').onchange = async e => { const file=e.target.files[0]; if (!file) return; const obj=JSON.parse(await file.text()); const t = blankTarget(obj.alias || 'Imported Target'); Object.assign(t, { id: obj.id || uid(), alias: obj.alias || 'Imported Target', realName: obj.real_name_optional || '', status: obj.status || '', smart: obj.smart_fields || {}, chips: obj.chip_memory || {}, factsLedger: obj.facts_ledger || [], compressedMemory: obj.compressed_memory || {}, createdAt: obj.created_at || nowISO(), updatedAt: nowISO() }); if (obj.core_profile) { t.ageRange=obj.core_profile.age_range_guess || ''; t.exactAge=obj.core_profile.exact_age_if_known || ''; t.description=obj.core_profile.one_line_description || ''; t.openNotes=obj.core_profile.open_notes || ''; } targets.unshift(t); activeId=t.id; saveStore(); renderTargetList(); loadActiveToForm(); updateStats(); toast('Target JSON imported.'); };
+    $('#simulateIntelBtn').onclick = simulateIntel;
+    $('#clearIntelBtn').onclick = () => { $('#rawIntel').value = ''; };
+
+    loadStore();
+  </script>
+</body>
+</html>
