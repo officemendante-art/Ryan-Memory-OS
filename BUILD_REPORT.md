@@ -2,7 +2,7 @@
 
 ## Phase 1 status
 
-**Status:** Phase 1 local MVP implemented. Phase 1 polish pass completed with build/tests passing. GitHub sync is being attempted from this workspace.
+**Status:** Phase 1 local MVP implemented. Phase 1 polish pass completed with build/tests passing and GitHub sync completed.
 
 ## Pass 1 — Documentation and execution constraints
 
@@ -109,9 +109,10 @@
 - Remote `main` contained a placeholder `README.md` only (`# Ryan-Memory-OS`).
 - Safe pull initially stopped because the local untracked `README.md` would have been overwritten.
 - Resolution: local README was temporarily preserved, remote placeholder history was pulled, and the fuller Phase 1 README was restored into the working tree for the intended commit.
-- Latest commit hash: pending Git initialization/commit.
-- Pushed branch: pending GitHub sync.
-- Working tree clean after push: pending GitHub sync.
+- Implementation commit pushed: `439262b` (`Refine Phase 1 UI and QA workflow`).
+- Pushed branch: `main`.
+- GitHub repo: `https://github.com/officemendante-art/Ryan-Memory-OS.git`
+- Note: the final report-cleanup commit hash is reported in the final Codex response because adding a commit's own hash to this file would change that same hash.
 
 ## Phase 2 candidates
 
