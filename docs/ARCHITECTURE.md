@@ -41,7 +41,7 @@ All primary records carry `createdAt` and `lastUpdated` timestamps. Metadata rec
 
 `src/lib/memory/extractor.ts` implements the Phase 1 deterministic extractor. It identifies simple fact, signal, emotion, conflict/risk, and open-loop cues from raw text and always allows human correction before persistence.
 
-`src/lib/ai/aiProvider.ts` defines a future-facing provider abstraction. The local deterministic provider is the default. Any OpenRouter-shaped placeholder is nonfunctional, has no embedded key, and must not issue remote requests in Phase 1.
+`src/lib/ai/aiProvider.ts` defines the provider abstraction. The local deterministic provider is the default. Phase 1.2 adds optional OpenRouter extraction through `src/lib/ai/openRouterProvider.ts`, but it remains off unless the user configures a local key in AI Settings or `.env.local`. OpenRouter output is treated as untrusted JSON and must pass validation before entering the mandatory Memory Review queue.
 
 ## Safety and recovery
 

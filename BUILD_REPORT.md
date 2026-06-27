@@ -120,3 +120,61 @@
 - Optional AI-assisted extraction provider behind a local/off-by-default interface.
 - Better import/export UX for full workspace restore.
 - Additional browser/E2E automation once local dev-server process launching is reliable in the execution environment.
+
+## Pass 4 — Phase 1.2 optional AI memory extraction
+
+**Completed**
+
+- Added an AI Settings page to the existing app without rebuilding the UI or changing the persisted relationship-memory schema.
+- Added local-only AI settings storage for provider, extraction mode, model, temperature, max tokens, masked OpenRouter key, and test status.
+- Added OpenRouter extraction provider for JSON-only memory extraction.
+- Added strict AI JSON validation before any extracted packet reaches Memory Review.
+- Added extraction mode on Add Report:
+  - Local heuristic
+  - AI only
+  - Auto: AI first, local fallback on failure
+- Kept deterministic local extraction as the default and fallback.
+- Kept Memory Review mandatory; AI output is never silently saved.
+- Added Test connection and Clear key actions.
+- Updated `.gitignore` to protect `.env.*.local`.
+- Updated `.env.example`, README, data schema docs, and QA checklist for optional AI extraction and key safety.
+
+**Files changed**
+
+- `.env.example`
+- `.gitignore`
+- `README.md`
+- `BUILD_REPORT.md`
+- `docs/DATA_SCHEMA.md`
+- `docs/QA_CHECKLIST.md`
+- `src/App.tsx`
+- `src/lib/ai/aiProvider.ts`
+- `src/lib/ai/openRouterProvider.ts`
+- `src/lib/ai/settings.ts`
+- `src/lib/ai/ai.test.ts`
+
+**Verification**
+
+- `npm.cmd run build` — passed.
+- `npm.cmd test` — passed.
+  - 2 test files passed.
+  - 10/10 tests passed.
+- Secret-pattern scan for common OpenRouter-style key strings — no matches found.
+
+**Manual QA result**
+
+- Not yet tested with a real OpenRouter key. The user should paste the key only into the local AI Settings screen.
+- Connection-test behavior and live AI extraction need normal-browser verification after the key is provided locally.
+- Local extraction remains verified by automated tests without a key.
+
+**Known risks**
+
+- This is a frontend-only local MVP. Any key used by the browser runtime is visible to that local runtime. This is acceptable for private local use only.
+- Public SaaS or production deployment must move provider calls behind a backend/serverless proxy.
+- Model output is untrusted and must remain validated/reviewed before save.
+
+**GitHub sync**
+
+- Latest commit hash: pending Phase 1.2 commit.
+- Pushed branch: pending Phase 1.2 push.
+- Working tree clean after push: pending Phase 1.2 push.

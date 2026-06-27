@@ -23,6 +23,16 @@ Current schema version: `1`
 | `packets` | `id, targetId, reportId, lastUpdated, metadata.isDemo` | Reviewed extraction packets. |
 | `metadata` | `id, lastUpdated, metadata.isDemo` | Operational metadata such as last export time. |
 
+## Local AI settings
+
+Optional AI extraction settings are browser-local operational settings, not relationship memory.
+
+- Storage key: `ryan-memory-os-ai-settings`
+- Storage surface: `localStorage`
+- Contents: provider, extraction mode, model, temperature, max tokens, optional local OpenRouter API key, and last test status.
+- Export policy: never included in target bundles, workspace exports, Ryan Case Packets, or demo data.
+- `.env.local` may provide `VITE_OPENROUTER_API_KEY` for local developer convenience only; it remains ignored by Git.
+
 ## User profile
 
 ```ts

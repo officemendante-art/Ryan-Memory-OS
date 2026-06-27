@@ -23,6 +23,22 @@
 - [ ] Form autosave does not overwrite another profile/target and exposes a save error if one occurs.
 - [ ] A runtime exception shows safe recovery UI instead of a white screen.
 
+## Optional AI extraction
+
+- [ ] AI Settings page opens from the sidebar.
+- [ ] Provider selector supports Local heuristic and OpenRouter.
+- [ ] Model selector/input supports DeepSeek presets and manual model names.
+- [ ] API key input is masked.
+- [ ] Save AI settings stores configuration locally in this browser.
+- [ ] Clear key removes the locally stored browser key.
+- [ ] Test connection reports connected, failed, or not configured clearly.
+- [ ] Add Report extraction mode supports Local, AI, and Auto.
+- [ ] AI extraction success creates a review packet, not saved target memory.
+- [ ] AI extraction failure in Auto falls back to local extraction with clear feedback.
+- [ ] AI extraction failure in AI-only mode shows an error and does not write derived memory.
+- [ ] Workspace/target exports do not include OpenRouter API keys.
+- [ ] Browser console has no uncaught errors during AI settings and extraction attempts.
+
 ## Demo and audit
 
 - [ ] Empty workspace is the initial state.

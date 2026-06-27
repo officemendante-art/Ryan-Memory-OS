@@ -1,10 +1,11 @@
 import type { MemoryPacket, RawReport, TargetContainer } from "../schema";
 import { extractMemoryPacket } from "../memory/extractor";
+import type { AiSettings } from "./settings";
 
 export interface AiProvider {
   readonly id: string;
   readonly label: string;
-  extract(report: RawReport, target: TargetContainer): Promise<MemoryPacket>;
+  extract(report: RawReport, target: TargetContainer, settings?: AiSettings): Promise<MemoryPacket>;
 }
 
 /** The default provider never sends data off-device. */

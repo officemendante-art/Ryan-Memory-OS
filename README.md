@@ -13,6 +13,7 @@ GitHub repository: [https://github.com/officemendante-art/Ryan-Memory-OS.git](ht
 - Provide focused User Profile and Target Container forms.
 - Capture raw reports quickly.
 - Extract deterministic local memory suggestions.
+- Optionally use OpenRouter/DeepSeek for AI-assisted memory extraction.
 - Require human review before saving extracted memory.
 - Merge selected memory into a target timeline/container.
 - Export Ryan Case Packets as Markdown or JSON.
@@ -23,9 +24,22 @@ GitHub repository: [https://github.com/officemendante-art/Ryan-Memory-OS.git](ht
 
 - No SaaS, login, auth, payments, analytics, or cloud sync.
 - No WhatsApp, social-media, or external message integrations.
-- No paid API requirement or hidden remote AI call.
+- No required paid API and no hidden remote AI call; AI extraction runs only when configured.
 - No advice engine, persuasion engine, or romantic scoring system.
 - No deep/oversized profile intake; advanced study forms are Phase 2 material.
+
+## Optional AI extraction
+
+Ryan Memory OS can optionally use OpenRouter for AI-assisted extraction. The AI worker only extracts structured memory from reports: facts, signals, emotions, risks, open loops, uncertainty, and compressed memory updates. It does not advise, score, persuade, write messages, or save anything silently.
+
+API key safety:
+
+- Do not put keys in source code.
+- Do not commit keys to GitHub.
+- In-app AI Settings stores a key locally in this browser only.
+- `.env.local` may define `VITE_OPENROUTER_API_KEY` for local developer convenience only.
+- Workspace and target exports do not include AI API keys.
+- For public SaaS/production, provider calls must move behind a backend proxy. Do not use frontend-stored production keys.
 
 ## Local development
 

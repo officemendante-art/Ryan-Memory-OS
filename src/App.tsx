@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { extractMemoryWithOpenRouter, testOpenRouterConnection } from './lib/ai/openRouterProvider'
+import {
+  clearAiApiKey,
+  getEffectiveOpenRouterApiKey,
+  loadAiSettings,
+  publicAiSettings,
+  saveAiSettings,
+  type AiSettings,
+  type ExtractionMode,
+} from './lib/ai/settings'
 import {
   db,
   addTarget,
@@ -33,19 +43,20 @@ import {
   type UserProfile,
 } from './lib/schema'
 
-type Page = 'dashboard' | 'profile' | 'targets' | 'report' | 'review' | 'export' | 'audit'
+type Page = 'dashboard' | 'profile' | 'targets' | 'report' | 'review' | 'export' | 'ai' | 'audit'
 type ReviewState = { report: RawReport; packet: MemoryPacket; selected: Record<string, boolean> }
 type LooseProfile = Partial<UserProfile> & Record<string, string | undefined>
 type LooseTarget = TargetContainer & Record<string, unknown>
 
 const nav: Array<[Page, string, string]> = [
-  ['dashboard', '◇', 'Dashboard'],
-  ['profile', '◎', 'User Profile'],
-  ['targets', '◉', 'Targets'],
-  ['report', '✎', 'Add Report'],
-  ['review', '✓', 'Memory Review'],
-  ['export', '⇧', 'Export Packet'],
-  ['audit', '⌁', 'System Audit'],
+  ['dashboard', 'D', 'Dashboard'],
+  ['profile', 'P', 'User Profile'],
+  ['targets', 'T', 'Targets'],
+  ['report', 'R', 'Add Report'],
+  ['review', 'V', 'Memory Review'],
+  ['export', 'E', 'Export Packet'],
+  ['ai', 'AI', 'AI Settings'],
+  ['audit', 'A', 'System Audit'],
 ]
 
 const reportTypes: ReportType[] = [
@@ -106,6 +117,9 @@ function AppBody() {
   const [includeProfile, setIncludeProfile] = useState(true)
   const [eventCount, setEventCount] = useState('5')
   const [detailedMode, setDetailedMode] = useState(false)
+  const [aiSettings, setAiSettings] = useState<AiSettings>(() => loadAiSettings())
+  const [aiDraft, setAiDraft] = useState<AiSettings>(() => loadAiSettings())
+  const [testingAi, setTestingAi] = useState(false)
   const importRef = useRef<HTMLInputElement>(null)
 
   const activeTarget = targets.find((target) => target.id === activeTargetId)
@@ -324,7 +338,24 @@ function AppBody() {
     }
   }
 
-  const extract = () => {
+  const selectAllPacketItems = (packet: MemoryPacket): Record<string, boolean> => {
+    const selected: Record<string, boolean> = {}
+    for (const [kind, items] of Object.entries({
+      facts: packet.facts,
+      signals: packet.signals,
+      emotions: packet.emotions,
+      risks: packet.risks,
+      openLoops: packet.openLoops,
+      patternHints: packet.patternHints,
+    })) {
+      items.forEach((_, index) => {
+        selected[itemKey(kind, index)] = true
+      })
+    }
+    return selected
+  }
+
+  const extract = async () => {
     try {
       if (!activeTarget || reportDraft.targetId !== activeTarget.id || !reportDraft.content.trim()) {
         throw new Error('Select a target and enter report text before extracting memory.')
@@ -341,25 +372,69 @@ function AppBody() {
         lastUpdated: stamp,
         metadata: { source: 'local' },
       }
-      const packet = extractMemoryPacket(report, activeTarget)
-      const selected: Record<string, boolean> = {}
-      for (const [kind, items] of Object.entries({
-        facts: packet.facts,
-        signals: packet.signals,
-        emotions: packet.emotions,
-        risks: packet.risks,
-        openLoops: packet.openLoops,
-        patternHints: packet.patternHints,
-      })) {
-        items.forEach((_, index) => {
-          selected[itemKey(kind, index)] = true
-        })
+      let packet: MemoryPacket
+      let producedBy = 'local heuristic'
+      const wantsAi = aiSettings.extractionMode === 'ai' || aiSettings.extractionMode === 'auto'
+      const canUseAi = aiSettings.provider === 'openrouter' && !!getEffectiveOpenRouterApiKey(aiSettings)
+      if (wantsAi && canUseAi) {
+        try {
+          packet = await extractMemoryWithOpenRouter(report, activeTarget, aiSettings)
+          producedBy = `OpenRouter - ${aiSettings.model}`
+        } catch (error) {
+          if (aiSettings.extractionMode === 'ai') throw error
+          packet = extractMemoryPacket(report, activeTarget)
+          producedBy = `local heuristic fallback (${error instanceof Error ? error.message : 'AI failed'})`
+        }
+      } else {
+        if (aiSettings.extractionMode === 'ai') throw new Error('AI extraction is selected, but OpenRouter is not configured with an API key.')
+        packet = extractMemoryPacket(report, activeTarget)
+        producedBy = aiSettings.extractionMode === 'auto' ? 'local heuristic fallback (AI not configured)' : 'local heuristic'
       }
-      setReview({ report, packet, selected })
+      setReview({ report, packet, selected: selectAllPacketItems(packet) })
       setPage('review')
-      tell('Memory was extracted locally. Review every item before saving.', 'info')
+      tell(`Memory extracted by ${producedBy}. Review every item before saving.`, 'info')
     } catch (error) {
       tell(error instanceof Error ? error.message : 'Unable to extract memory.', 'error')
+    }
+  }
+
+  const saveAiConfig = () => {
+    const saved = saveAiSettings(aiDraft)
+    setAiSettings(saved)
+    setAiDraft(saved)
+    tell('AI settings saved locally in this browser.')
+  }
+
+  const setExtractionMode = (mode: ExtractionMode) => {
+    const saved = saveAiSettings({ ...aiSettings, extractionMode: mode })
+    setAiSettings(saved)
+    setAiDraft(saved)
+    tell(`Extraction mode set to ${mode}.`, 'info')
+  }
+
+  const clearSavedAiKey = () => {
+    if (!window.confirm('Clear the locally stored OpenRouter API key from this browser?')) return
+    const saved = clearAiApiKey(aiDraft)
+    setAiSettings(saved)
+    setAiDraft(saved)
+    tell('Local OpenRouter key cleared.')
+  }
+
+  const testAi = async () => {
+    try {
+      setTestingAi(true)
+      const message = await testOpenRouterConnection(aiDraft)
+      const saved = saveAiSettings({ ...aiDraft, lastTestStatus: 'connected', lastTestMessage: message })
+      setAiSettings(saved)
+      setAiDraft(saved)
+      tell(message)
+    } catch (error) {
+      const saved = saveAiSettings({ ...aiDraft, lastTestStatus: 'failed', lastTestMessage: error instanceof Error ? error.message : 'Connection failed.' })
+      setAiSettings(saved)
+      setAiDraft(saved)
+      tell(saved.lastTestMessage ?? 'Connection failed.', 'error')
+    } finally {
+      setTestingAi(false)
     }
   }
 
@@ -781,6 +856,15 @@ function AppBody() {
               <input type="date" value={reportDraft.occurredAt} onChange={(event) => setReportDraft((draft) => ({ ...draft, occurredAt: event.target.value }))} />
             </div>
             <div className="field">
+              <label>Extraction mode</label>
+              <select value={aiSettings.extractionMode} onChange={(event) => setExtractionMode(event.target.value as ExtractionMode)}>
+                <option value="local">Local heuristic</option>
+                <option value="ai">AI only</option>
+                <option value="auto">Auto: AI then local fallback</option>
+              </select>
+              <div className="field-help">{aiSettings.provider === 'openrouter' && getEffectiveOpenRouterApiKey(aiSettings) ? `OpenRouter ready: ${aiSettings.model}` : 'Local mode works without an API key.'}</div>
+            </div>
+            <div className="field">
               <label>Optional exact-message title <span>optional</span></label>
               <input value={reportDraft.title} onChange={(event) => setReportDraft((draft) => ({ ...draft, title: event.target.value }))} placeholder="e.g. Her exact text" />
             </div>
@@ -798,7 +882,7 @@ function AppBody() {
           <div className="section-actions section-gap-small">
             <button className="button" onClick={() => setReportDraft((draft) => ({ ...draft, content: '', title: '' }))}>Clear</button>
             <button className="button" onClick={() => void saveRawOnly()}>Save raw only</button>
-            <button className="button primary" onClick={extract}>Extract memory</button>
+            <button className="button primary" onClick={() => void extract()}>Extract memory</button>
           </div>
         </div>
         <aside className="card card-pad">
@@ -812,6 +896,8 @@ function AppBody() {
             ))}
           </div>
           <div className="notice warning section-gap-small">Extraction never becomes target memory until you review and save selected items.</div>
+          <div className="notice info section-gap-small">AI extraction is optional. It only creates reviewable structured memory, never advice.</div>
+          <button className="button section-gap-small" onClick={() => setPage('ai')}>Open AI Settings</button>
         </aside>
       </section>
     </>
@@ -961,6 +1047,88 @@ function AppBody() {
     </>
   )
 
+  const renderAiSettings = () => {
+    const publicSettings = publicAiSettings(aiDraft)
+    const effectiveKeyReady = !!getEffectiveOpenRouterApiKey(aiDraft)
+    return (
+      <>
+        {header(
+          'AI Settings',
+          'Optional OpenRouter extraction for turning messy reports into reviewable structured memory. The app still never gives dating advice.',
+          <div className="section-actions">
+            <button className="button" onClick={() => setAiDraft(loadAiSettings())}>Reload saved</button>
+            <button className="button success" onClick={saveAiConfig}>Save settings</button>
+          </div>,
+        )}
+        <section className="grid two-col">
+          <div className="card card-pad">
+            <div className="section-head">
+              <div>
+                <h2>Provider and model</h2>
+                <p className="card-copy">Local heuristic remains available. OpenRouter is optional and only used for extraction.</p>
+              </div>
+              <span className={`chip ${effectiveKeyReady ? 'success' : 'warn'}`}>{effectiveKeyReady ? 'key available' : 'not configured'}</span>
+            </div>
+            <div className="grid field-grid">
+              <div className="field">
+                <label>Provider</label>
+                <select value={aiDraft.provider} onChange={(event) => setAiDraft((draft) => ({ ...draft, provider: event.target.value as AiSettings['provider'] }))}>
+                  <option value="local">Local heuristic</option>
+                  <option value="openrouter">OpenRouter</option>
+                </select>
+              </div>
+              <div className="field">
+                <label>Default extraction mode</label>
+                <select value={aiDraft.extractionMode} onChange={(event) => setAiDraft((draft) => ({ ...draft, extractionMode: event.target.value as ExtractionMode }))}>
+                  <option value="local">Local heuristic</option>
+                  <option value="ai">AI only</option>
+                  <option value="auto">Auto: AI then local fallback</option>
+                </select>
+              </div>
+              <div className="field">
+                <label>Model preset</label>
+                <select value={aiDraft.model} onChange={(event) => setAiDraft((draft) => ({ ...draft, model: event.target.value }))}>
+                  <option value="deepseek/deepseek-v4-flash">deepseek/deepseek-v4-flash</option>
+                  <option value="deepseek/deepseek-v4-pro">deepseek/deepseek-v4-pro</option>
+                  <option value={aiDraft.model}>Custom: {aiDraft.model}</option>
+                </select>
+              </div>
+              <div className="field">
+                <label>Model name</label>
+                <input value={aiDraft.model} onChange={(event) => setAiDraft((draft) => ({ ...draft, model: event.target.value }))} placeholder="deepseek/deepseek-v4-flash" />
+              </div>
+              <div className="field">
+                <label>Temperature</label>
+                <input type="number" min="0" max="1" step="0.1" value={aiDraft.temperature} onChange={(event) => setAiDraft((draft) => ({ ...draft, temperature: Number(event.target.value) }))} />
+              </div>
+              <div className="field">
+                <label>Max tokens</label>
+                <input type="number" min="200" max="8000" step="100" value={aiDraft.maxTokens} onChange={(event) => setAiDraft((draft) => ({ ...draft, maxTokens: Number(event.target.value) }))} />
+              </div>
+            </div>
+          </div>
+          <aside className="card card-pad">
+            <h2>Local API key</h2>
+            <p className="card-copy">Stored locally in this browser only. Never exported, never committed, and visible to this local frontend runtime.</p>
+            <div className="field">
+              <label>OpenRouter API key</label>
+              <input type="password" value={aiDraft.apiKey ?? ''} onChange={(event) => setAiDraft((draft) => ({ ...draft, apiKey: event.target.value }))} placeholder={publicSettings.hasEnvKey ? 'Using VITE_OPENROUTER_API_KEY from .env.local' : 'Paste key locally when ready'} />
+              <div className="field-help">{publicSettings.hasBrowserKey ? 'Browser key is saved in local settings after you click Save.' : publicSettings.hasEnvKey ? '.env.local key detected for local dev.' : 'No API key configured.'}</div>
+            </div>
+            <div className="section-actions section-gap-small">
+              <button className="button" onClick={() => void testAi()} disabled={testingAi || !effectiveKeyReady}>{testingAi ? 'Testing...' : 'Test connection'}</button>
+              <button className="button danger" onClick={clearSavedAiKey}>Clear key</button>
+            </div>
+            <div className={`notice ${aiDraft.lastTestStatus === 'connected' ? 'success' : aiDraft.lastTestStatus === 'failed' ? 'error' : 'info'} section-gap-small`}>
+              Status: {aiDraft.lastTestStatus ?? 'not_configured'}{aiDraft.lastTestMessage ? ` - ${aiDraft.lastTestMessage}` : ''}
+            </div>
+            <div className="notice warning section-gap-small">Production/SaaS must move provider calls behind a backend proxy. Do not use frontend-stored production keys for a public app.</div>
+          </aside>
+        </section>
+      </>
+    )
+  }
+
   const renderAudit = () => {
     const warnings = [
       !profile && 'User profile is missing.',
@@ -1008,6 +1176,7 @@ function AppBody() {
     report: renderReport,
     review: renderReview,
     export: renderExport,
+    ai: renderAiSettings,
     audit: renderAudit,
   }[page]())
 
