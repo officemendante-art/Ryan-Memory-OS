@@ -175,6 +175,7 @@
 
 **GitHub sync**
 
-- Latest commit hash: pending Phase 1.2 commit.
-- Pushed branch: pending Phase 1.2 push.
-- Working tree clean after push: pending Phase 1.2 push.
+- Implementation commit pushed: `bacba9d` (`Add optional AI memory extraction settings`).
+- Pushed branch: `main`.
+- GitHub repo: `https://github.com/officemendante-art/Ryan-Memory-OS.git`
+- Note: the final report-cleanup commit hash is reported in the final Codex response because adding a commit's own hash to this file would change that same hash.
