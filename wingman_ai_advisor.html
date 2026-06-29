@@ -1,0 +1,388 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    background: #0A0C14;
+    color: #F0F0F0;
+    font-family: 'Inter', system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+  }
+  .header {
+    padding: 14px 18px;
+    border-bottom: 1px solid #1E2235;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #0D0F1A;
+    flex-shrink: 0;
+  }
+  .logo-wrap { display: flex; align-items: center; gap: 11px; }
+  .logo-icon {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, #C9A84C, #7A5C10);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .logo-title { font-weight: 800; font-size: 15px; letter-spacing: 3px; color: #C9A84C; }
+  .logo-sub { font-size: 10px; color: #4A4F6A; letter-spacing: 1.5px; margin-top: 1px; }
+  .lib-btn {
+    background: transparent;
+    border: 1px solid #1E2235;
+    border-radius: 8px;
+    color: #5A5F7A;
+    padding: 7px 13px;
+    cursor: pointer;
+    font-size: 11px;
+    letter-spacing: 1px;
+    transition: all 0.15s;
+  }
+  .lib-btn:hover { background: #1A1D2E; color: #8B8FA8; }
+  .lib-btn.active { background: #1A1D2E; color: #C9A84C; border-color: #2A2D3E; }
+  .library {
+    background: #0D0F1A;
+    border-bottom: 1px solid #1E2235;
+    padding: 14px 18px;
+    flex-shrink: 0;
+  }
+  .lib-label { font-size: 10px; color: #C9A84C; letter-spacing: 2px; margin-bottom: 10px; }
+  .book-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    background: #1A1D2E;
+    border: 1px solid #2A2D3E;
+    border-radius: 20px;
+    padding: 4px 11px;
+    font-size: 10px;
+    color: #6A6F8A;
+  }
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 0;
+  }
+  .msg-row { display: flex; align-items: flex-start; gap: 9px; }
+  .msg-row.user { justify-content: flex-end; }
+  .avatar {
+    width: 30px; height: 30px;
+    background: linear-gradient(135deg, #C9A84C, #7A5C10);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0; margin-top: 2px;
+  }
+  .bubble {
+    max-width: 78%;
+    padding: 11px 15px;
+    border-radius: 4px 14px 14px 14px;
+    line-height: 1.6;
+    font-size: 13px;
+    white-space: pre-wrap;
+  }
+  .bubble.assistant {
+    background: #141728;
+    border: 1px solid #1E2235;
+    color: #D0D0E0;
+    border-radius: 4px 14px 14px 14px;
+  }
+  .bubble.user {
+    background: #172A45;
+    border: 1px solid #1E3A60;
+    color: #A8C8E8;
+    border-radius: 14px 4px 14px 14px;
+  }
+  .typing-bubble {
+    background: #141728;
+    border: 1px solid #1E2235;
+    border-radius: 4px 14px 14px 14px;
+    padding: 12px 16px;
+    display: flex; gap: 5px; align-items: center;
+  }
+  .dot {
+    width: 6px; height: 6px;
+    background: #C9A84C;
+    border-radius: 50%;
+    animation: pulse 1.3s ease-in-out infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.2; transform: scale(0.7); }
+    50% { opacity: 1; transform: scale(1.1); }
+  }
+  .scenarios {
+    padding: 0 18px 10px;
+    display: flex; gap: 7px; flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+  .scenario-btn {
+    background: #131626;
+    border: 1px solid #1E2235;
+    border-radius: 18px;
+    color: #6A6F8A;
+    padding: 6px 13px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .scenario-btn:hover { background: #1A1D2E; color: #9B9FB8; border-color: #2A2D3E; }
+  .input-area {
+    padding: 14px 18px;
+    border-top: 1px solid #1E2235;
+    background: #0D0F1A;
+    display: flex;
+    gap: 9px;
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+  textarea {
+    flex: 1;
+    background: #131626;
+    border: 1px solid #1E2235;
+    border-radius: 11px;
+    color: #F0F0F0;
+    padding: 11px 14px;
+    font-size: 13px;
+    resize: none;
+    min-height: 46px;
+    max-height: 110px;
+    outline: none;
+    line-height: 1.5;
+    font-family: inherit;
+    transition: border-color 0.15s;
+  }
+  textarea:focus { border-color: #2A3050; }
+  textarea::placeholder { color: #2E3250; }
+  .send-btn {
+    width: 46px; height: 46px;
+    border: none;
+    border-radius: 11px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    font-weight: bold;
+  }
+  .send-btn.active { background: linear-gradient(135deg, #C9A84C, #7A5C10); }
+  .send-btn.inactive { background: #1A1D2E; cursor: not-allowed; }
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #1E2235; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">⚡</div>
+    <div>
+      <div class="logo-title">WINGMAN</div>
+      <div class="logo-sub">25+ BOOKS · AI ADVISOR</div>
+    </div>
+  </div>
+  <button class="lib-btn" id="libBtn" onclick="toggleLib()">📚 LIBRARY</button>
+</div>
+
+<div class="library" id="library" style="display:none">
+  <div class="lib-label">KNOWLEDGE BASE — FULLY LOADED</div>
+  <div class="book-chips" id="chips"></div>
+</div>
+
+<div class="messages" id="messages"></div>
+
+<div class="scenarios" id="scenariosWrap">
+  <button class="scenario-btn" onclick="useScenario(this)">Girl at the café I see daily</button>
+  <button class="scenario-btn" onclick="useScenario(this)">How to approach a stranger?</button>
+  <button class="scenario-btn" onclick="useScenario(this)">She stopped texting back</button>
+  <button class="scenario-btn" onclick="useScenario(this)">I froze up talking to her</button>
+  <button class="scenario-btn" onclick="useScenario(this)">Stuck in the friend zone</button>
+</div>
+
+<div class="input-area">
+  <textarea id="msgInput" placeholder="Describe your situation... (e.g. 'There's a girl at the gym I want to talk to but I freeze up every time')" rows="1" oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+  <button class="send-btn inactive" id="sendBtn" onclick="sendMessage()">→</button>
+</div>
+
+<script>
+const BOOKS = [
+  "The Game — Strauss","Models — Manson","No More Mr. Nice Guy — Glover",
+  "The Female Brain — Brizendine","Come As You Are — Nagoski","The Rational Male — Tomassi",
+  "She Comes First — Kerner","Way of the Superior Man — Deida","Mate — Tucker Max & Miller",
+  "Day Bang — Roosh V","The Art of Seduction — Greene","How to Talk to Anyone — Lowndes",
+  "What Every Body is Saying — Navarro","Attached — Levine & Heller","Why Women Have Sex — Buss",
+  "The Multi-Orgasmic Man — Chia","Anatomy of Love — Fisher","The 48 Laws — Greene",
+  "Influence — Cialdini","The Pickup Artist — Mystery","Double Your Dating — DeAngelo",
+  "The Natural — La Ruina","Thinking Fast & Slow — Kahneman","The Way of the Superior Man",
+  "How to Be a 3% Man — Wayne"
+];
+
+const SYSTEM = `You are WINGMAN — an elite AI advisor who has deeply absorbed and synthesized 25+ books on attraction, female psychology, seduction, relationships, and male self-development. You've internalized:
+
+SEDUCTION & ATTRACTION:
+- "The Game" & "Rules of the Game" — Neil Strauss: Mystery Method, openers, escalation, real field experience, PUA community secrets
+- "Models" — Mark Manson: authentic attraction, vulnerability, polarization, non-neediness
+- "The Pickup Artist" — Mystery: attraction switches, comfort/trust building, structured seduction model
+- "The Art of Seduction" — Robert Greene: 9 seducer types, 24 seductive maneuvers, historical case studies
+- "Day Bang" — Roosh V: daytime approaching, situational openers, low-pressure natural conversation
+- "Double Your Dating" — David DeAngelo: cocky-funny, demonstration of higher value, attraction triggers
+- "The Natural" — Richard La Ruina: total transformation from shy to natural seducer
+
+MALE MINDSET:
+- "No More Mr. Nice Guy" — Dr. Robert Glover: nice guy syndrome, covert contracts, authentic masculinity, breaking people-pleasing
+- "The Rational Male" — Rollo Tomassi: hypergamy, frame control, abundance vs scarcity mindset
+- "The Way of the Superior Man" — David Deida: masculine purpose, sexual polarity, presence, not chasing
+- "Mate" — Tucker Max & Geoffrey Miller: evolutionary psychology, what women biologically want, building mate value
+- "How to Be a 3% Man" — Corey Wayne: high-value male behavior, not chasing, letting women come to you
+- "The 48 Laws of Power" — Robert Greene: power dynamics, frame, never appear desperate
+
+FEMALE PSYCHOLOGY & BIOLOGY:
+- "The Female Brain" — Louann Brizendine: estrogen/progesterone/oxytocin, how female brain processes emotion, communication, attraction
+- "Come As You Are" — Emily Nagoski: responsive vs spontaneous desire, context dependency, stress shuts down female desire, the accelerator/brake model
+- "Why Women Have Sex" — Meston & Buss: 237 documented reasons, what women are actually attracted to vs what they say
+- "What Do Women Want?" — Daniel Bergner: female desire research, women want variety more than admitted
+- "Attached" — Levine & Heller: attachment styles (anxious/avoidant/secure), how each behaves in attraction
+- "The Anatomy of Love" — Helen Fisher: dopamine/oxytocin/serotonin brain chemistry in love and lust
+
+CONVERSATION & BODY LANGUAGE:
+- "How to Talk to Anyone" — Leil Lowndes: 92 little tricks, openers, keeping conversation alive, likability
+- "What Every Body is Saying" — Joe Navarro: reading female interest signals, projecting confident body language
+- "Influence" — Cialdini: reciprocity, social proof, liking, scarcity applied to attraction
+
+SEXUALITY & INTIMACY:
+- "She Comes First" — Ian Kerner: female pleasure anatomy, technique, timing, foreplay priority
+- "The Multi-Orgasmic Man" — Mantak Chia: stamina control, tantric techniques, energy
+- "Slow Sex" — Nicole Daedone: extended pleasure, slowing down, women respond to patience
+- "The Guide to Getting It On" — Paul Joannides: comprehensive sexual knowledge used in university education
+
+YOUR ROLE:
+You are the user's personal wingman. He may be shy, introverted, inexperienced, or confused. Your job is to give SPECIFIC, ACTIONABLE advice for his REAL situation — not generic tips. Reference book principles naturally. Be like a wise, confident older brother who has been through everything and never judges.
+
+RESPONSE STYLE:
+- Be direct, specific, actionable
+- Give exact words or openers to use when relevant
+- Reference book principles briefly when applicable (e.g. "This is the 'responsive desire' principle from Nagoski...")
+- Ask one clarifying question if you need more context
+- Never be preachy or moralistic
+- Keep it practical and real
+- Remind him: women are real humans — the goal is genuine mutual attraction, not tricks
+- Max 300 words per response unless the situation is complex`;
+
+let conversation = [
+  { role: "assistant", content: "Yo. I'm WINGMAN — I've fully absorbed 25+ books on attraction, female psychology, seduction, and confidence. Drop any real situation and I'll tell you exactly what to do.\n\nWhat's going on right now?" }
+];
+let loading = false;
+
+// Render books
+const chips = document.getElementById('chips');
+BOOKS.forEach(b => {
+  const c = document.createElement('div');
+  c.className = 'chip';
+  c.textContent = '✓ ' + b;
+  chips.appendChild(c);
+});
+
+function toggleLib() {
+  const lib = document.getElementById('library');
+  const btn = document.getElementById('libBtn');
+  const visible = lib.style.display !== 'none';
+  lib.style.display = visible ? 'none' : 'block';
+  btn.classList.toggle('active', !visible);
+}
+
+function renderMessages() {
+  const container = document.getElementById('messages');
+  container.innerHTML = '';
+  conversation.forEach(msg => {
+    const row = document.createElement('div');
+    row.className = `msg-row ${msg.role}`;
+    if (msg.role === 'assistant') {
+      row.innerHTML = `<div class="avatar">⚡</div><div class="bubble assistant">${msg.content}</div>`;
+    } else {
+      row.innerHTML = `<div class="bubble user">${msg.content}</div>`;
+    }
+    container.appendChild(row);
+  });
+  if (loading) {
+    const row = document.createElement('div');
+    row.className = 'msg-row';
+    row.innerHTML = `<div class="avatar">⚡</div><div class="typing-bubble"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+    container.appendChild(row);
+  }
+  container.scrollTop = container.scrollHeight;
+}
+
+function useScenario(btn) {
+  document.getElementById('msgInput').value = btn.textContent;
+  updateSendBtn();
+  document.getElementById('scenariosWrap').style.display = 'none';
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+  updateSendBtn();
+}
+
+function updateSendBtn() {
+  const val = document.getElementById('msgInput').value.trim();
+  const btn = document.getElementById('sendBtn');
+  btn.className = `send-btn ${val && !loading ? 'active' : 'inactive'}`;
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+async function sendMessage() {
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  if (!text || loading) return;
+
+  document.getElementById('scenariosWrap').style.display = 'none';
+  conversation.push({ role: 'user', content: text });
+  input.value = '';
+  input.style.height = 'auto';
+  loading = true;
+  updateSendBtn();
+  renderMessages();
+
+  try {
+    const apiMessages = conversation.map(m => ({ role: m.role, content: m.content }));
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: SYSTEM,
+        messages: apiMessages
+      })
+    });
+    const data = await res.json();
+    const reply = data.content && data.content[0] ? data.content[0].text : "Something went wrong. Try again.";
+    conversation.push({ role: 'assistant', content: reply });
+  } catch(e) {
+    conversation.push({ role: 'assistant', content: "Connection issue. Try again." });
+  }
+
+  loading = false;
+  updateSendBtn();
+  renderMessages();
+}
+
+renderMessages();
+</script>
+</body>
+</html>

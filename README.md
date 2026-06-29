@@ -13,7 +13,7 @@ GitHub repository: [https://github.com/officemendante-art/Ryan-Memory-OS.git](ht
 - Provide focused User Profile and Target Container forms.
 - Capture raw reports quickly.
 - Extract deterministic local memory suggestions.
-- Optionally use OpenRouter/DeepSeek for AI-assisted memory extraction.
+- Optionally use the AI Provider Manager for AI-assisted memory extraction with Gemini, OpenRouter, or a custom OpenAI-compatible endpoint.
 - Require human review before saving extracted memory.
 - Merge selected memory into a target timeline/container.
 - Export Ryan Case Packets as Markdown or JSON.
@@ -30,15 +30,28 @@ GitHub repository: [https://github.com/officemendante-art/Ryan-Memory-OS.git](ht
 
 ## Optional AI extraction
 
-Ryan Memory OS can optionally use OpenRouter for AI-assisted extraction. The AI worker only extracts structured memory from reports: facts, signals, emotions, risks, open loops, uncertainty, and compressed memory updates. It does not advise, score, persuade, write messages, or save anything silently.
+Ryan Memory OS can optionally route extraction through multiple local browser-configured providers:
+
+- Gemini API
+- OpenRouter
+- OpenAI-compatible custom providers
+- Local heuristic fallback, always available and always last in Auto mode
+
+The AI worker only extracts structured memory from reports: facts, signals, emotions, risks, open loops, uncertainty, and compressed memory updates. It does not advise, score, persuade, write messages, or save anything silently.
+
+Extraction modes:
+
+- Local: deterministic local heuristic only.
+- AI only: tries enabled remote providers by priority and shows a clear error if all fail.
+- Auto: tries enabled remote providers by priority, then clearly falls back to the local heuristic if remote extraction fails.
 
 API key safety:
 
 - Do not put keys in source code.
 - Do not commit keys to GitHub.
-- In-app AI Settings stores a key locally in this browser only.
-- `.env.local` may define `VITE_OPENROUTER_API_KEY` for local developer convenience only.
-- Workspace and target exports do not include AI API keys.
+- In-app AI Provider Manager stores keys locally in this browser only.
+- `.env.local` may define `VITE_GEMINI_API_KEY` or `VITE_OPENROUTER_API_KEY` for local developer convenience only.
+- Workspace exports, target exports, Ryan Case Packets, demo data, logs, and Git-tracked files do not include AI API keys.
 - For public SaaS/production, provider calls must move behind a backend proxy. Do not use frontend-stored production keys.
 
 ## Local development

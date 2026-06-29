@@ -1,15 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ErrorBoundary } from './components/ErrorBoundary'
-import { extractMemoryWithOpenRouter, testOpenRouterConnection } from './lib/ai/openRouterProvider'
 import {
-  clearAiApiKey,
-  getEffectiveOpenRouterApiKey,
+  clearAllAiKeys,
+  createProviderConfig,
+  getEffectiveApiKey,
   loadAiSettings,
+  modelPresetsForProvider,
+  moveProvider,
+  normalizeAiSettings,
+  providerTypeLabel,
   publicAiSettings,
+  removeProvider,
   saveAiSettings,
+  updateProvider,
   type AiSettings,
+  type AIProviderConfig,
+  type AiProviderType,
   type ExtractionMode,
-} from './lib/ai/settings'
+} from './lib/ai/aiSettings'
+import { extractWithAiRouter, testAllProviders, testProvider } from './lib/ai/aiRouter'
 import {
   db,
   addTarget,
@@ -27,7 +36,6 @@ import {
   setMetadata,
 } from './lib/db/storage'
 import { loadDemoData } from './lib/demoData'
-import { extractMemoryPacket } from './lib/memory/extractor'
 import { mergeMemoryPacket } from './lib/memory/merge'
 import { casePacketToMarkdown, generateRyanCasePacket } from './lib/memory/packetGenerator'
 import {
@@ -372,27 +380,16 @@ function AppBody() {
         lastUpdated: stamp,
         metadata: { source: 'local' },
       }
-      let packet: MemoryPacket
-      let producedBy = 'local heuristic'
-      const wantsAi = aiSettings.extractionMode === 'ai' || aiSettings.extractionMode === 'auto'
-      const canUseAi = aiSettings.provider === 'openrouter' && !!getEffectiveOpenRouterApiKey(aiSettings)
-      if (wantsAi && canUseAi) {
-        try {
-          packet = await extractMemoryWithOpenRouter(report, activeTarget, aiSettings)
-          producedBy = `OpenRouter - ${aiSettings.model}`
-        } catch (error) {
-          if (aiSettings.extractionMode === 'ai') throw error
-          packet = extractMemoryPacket(report, activeTarget)
-          producedBy = `local heuristic fallback (${error instanceof Error ? error.message : 'AI failed'})`
-        }
-      } else {
-        if (aiSettings.extractionMode === 'ai') throw new Error('AI extraction is selected, but OpenRouter is not configured with an API key.')
-        packet = extractMemoryPacket(report, activeTarget)
-        producedBy = aiSettings.extractionMode === 'auto' ? 'local heuristic fallback (AI not configured)' : 'local heuristic'
-      }
+      const result = await extractWithAiRouter(report, activeTarget, aiSettings)
+      const packet = result.packet
       setReview({ report, packet, selected: selectAllPacketItems(packet) })
       setPage('review')
-      tell(`Memory extracted by ${producedBy}. Review every item before saving.`, 'info')
+      tell(
+        result.usedLocalFallback
+          ? 'AI failed; local fallback used. Review every item before saving.'
+          : `Memory extracted by ${result.sourceLabel}. Review every item before saving.`,
+        'info',
+      )
     } catch (error) {
       tell(error instanceof Error ? error.message : 'Unable to extract memory.', 'error')
     }
@@ -406,33 +403,78 @@ function AppBody() {
   }
 
   const setExtractionMode = (mode: ExtractionMode) => {
-    const saved = saveAiSettings({ ...aiSettings, extractionMode: mode })
+    const saved = saveAiSettings({ ...aiSettings, defaultExtractionMode: mode })
     setAiSettings(saved)
     setAiDraft(saved)
     tell(`Extraction mode set to ${mode}.`, 'info')
   }
 
-  const clearSavedAiKey = () => {
-    if (!window.confirm('Clear the locally stored OpenRouter API key from this browser?')) return
-    const saved = clearAiApiKey(aiDraft)
+  const clearSavedAiKeys = () => {
+    if (!window.confirm('Clear all locally stored AI provider keys from this browser? Provider labels, models, and priority order remain.')) return
+    const saved = clearAllAiKeys(aiDraft)
     setAiSettings(saved)
     setAiDraft(saved)
-    tell('Local OpenRouter key cleared.')
+    tell('Local AI provider keys cleared.')
   }
 
-  const testAi = async () => {
+  const setProviderDraft = (providerId: string, updater: (provider: AIProviderConfig) => AIProviderConfig) => {
+    setAiDraft((draft) => updateProvider(draft, providerId, updater))
+  }
+
+  const addProviderDraft = (type: AiProviderType) => {
+    setAiDraft((draft) => normalizeAiSettings({
+      ...draft,
+      providers: [
+        ...draft.providers.filter((provider) => provider.type !== 'local'),
+        createProviderConfig(type, { label: type === 'gemini' ? 'Gemini Free Key' : providerTypeLabel(type), priority: draft.providers.length }),
+        draft.providers.find((provider) => provider.type === 'local') ?? createProviderConfig('local', { priority: 999 }),
+      ],
+    }))
+    tell(`${providerTypeLabel(type)} provider added.`, 'info')
+  }
+
+  const deleteProviderDraft = (providerId: string) => {
+    const provider = aiDraft.providers.find((item) => item.id === providerId)
+    if (!provider || provider.type === 'local') return
+    if (!window.confirm(`Delete provider "${provider.label}" from local AI settings?`)) return
+    setAiDraft((draft) => removeProvider(draft, providerId))
+  }
+
+  const moveProviderDraft = (providerId: string, direction: -1 | 1) => {
+    setAiDraft((draft) => moveProvider(draft, providerId, direction))
+  }
+
+  const applyTestResults = (results: Awaited<ReturnType<typeof testAllProviders>>) => {
+    const byId = new Map(results.map((result) => [result.providerId, result]))
+    const saved = saveAiSettings({
+      ...aiDraft,
+      providers: aiDraft.providers.map((provider) => {
+        const result = byId.get(provider.id)
+        return result ? { ...provider, lastStatus: result.status, lastMessage: result.message, lastTestedAt: nowIso() } : provider
+      }),
+    })
+    setAiSettings(saved)
+    setAiDraft(saved)
+    return results
+  }
+
+  const testSingleProvider = async (provider: AIProviderConfig) => {
     try {
       setTestingAi(true)
-      const message = await testOpenRouterConnection(aiDraft)
-      const saved = saveAiSettings({ ...aiDraft, lastTestStatus: 'connected', lastTestMessage: message })
-      setAiSettings(saved)
-      setAiDraft(saved)
-      tell(message)
-    } catch (error) {
-      const saved = saveAiSettings({ ...aiDraft, lastTestStatus: 'failed', lastTestMessage: error instanceof Error ? error.message : 'Connection failed.' })
-      setAiSettings(saved)
-      setAiDraft(saved)
-      tell(saved.lastTestMessage ?? 'Connection failed.', 'error')
+      const result = await testProvider(provider, aiDraft)
+      applyTestResults([result])
+      tell(result.message, result.status === 'connected' ? 'success' : 'error')
+    } finally {
+      setTestingAi(false)
+    }
+  }
+
+  const testAllProviderDrafts = async () => {
+    try {
+      setTestingAi(true)
+      const results = applyTestResults(await testAllProviders(aiDraft))
+      const failures = results.filter((result) => result.status !== 'connected')
+      tell(failures.length ? `${results.length - failures.length}/${results.length} providers connected. Review statuses below.` : 'All configured providers connected.', failures.length ? 'warning' : 'success')
     } finally {
       setTestingAi(false)
     }
@@ -857,12 +899,16 @@ function AppBody() {
             </div>
             <div className="field">
               <label>Extraction mode</label>
-              <select value={aiSettings.extractionMode} onChange={(event) => setExtractionMode(event.target.value as ExtractionMode)}>
+              <select value={aiSettings.defaultExtractionMode} onChange={(event) => setExtractionMode(event.target.value as ExtractionMode)}>
                 <option value="local">Local heuristic</option>
                 <option value="ai">AI only</option>
                 <option value="auto">Auto: AI then local fallback</option>
               </select>
-              <div className="field-help">{aiSettings.provider === 'openrouter' && getEffectiveOpenRouterApiKey(aiSettings) ? `OpenRouter ready: ${aiSettings.model}` : 'Local mode works without an API key.'}</div>
+              <div className="field-help">
+                {aiSettings.defaultExtractionMode === 'local'
+                  ? 'Local mode works without any API key.'
+                  : `${aiSettings.providers.filter((provider) => provider.type !== 'local' && provider.enabled && getEffectiveApiKey(provider)).length} configured remote provider(s); local heuristic remains the final Auto fallback.`}
+              </div>
             </div>
             <div className="field">
               <label>Optional exact-message title <span>optional</span></label>
@@ -1049,14 +1095,30 @@ function AppBody() {
 
   const renderAiSettings = () => {
     const publicSettings = publicAiSettings(aiDraft)
-    const effectiveKeyReady = !!getEffectiveOpenRouterApiKey(aiDraft)
+    const publicProviders = publicSettings.providers
+    const remoteProviderCount = aiDraft.providers.filter((provider) => provider.type !== 'local').length
+    const enabledRemoteCount = aiDraft.providers.filter((provider) => provider.type !== 'local' && provider.enabled).length
+    const route = aiDraft.providers.filter((provider) => provider.enabled || provider.type === 'local').sort((a, b) => a.priority - b.priority)
+    const extractionProfile = aiDraft.advanced.maxTokens <= 1000 ? 'fast' : aiDraft.advanced.temperature <= 0 ? 'strict' : 'balanced'
+    const setExtractionProfile = (profile: string) => {
+      setAiDraft((draft) => normalizeAiSettings({
+        ...draft,
+        advanced: profile === 'fast'
+          ? { ...draft.advanced, temperature: 0.1, maxTokens: 900 }
+          : profile === 'strict'
+            ? { ...draft.advanced, temperature: 0, maxTokens: 1800 }
+            : { ...draft.advanced, temperature: 0.1, maxTokens: 1600 },
+      }))
+    }
+    const statusClass = (status?: string) => status === 'connected' ? 'success' : status === 'failed' || status === 'rate_limited' ? 'error' : 'info'
     return (
       <>
         {header(
-          'AI Settings',
-          'Optional OpenRouter extraction for turning messy reports into reviewable structured memory. The app still never gives dating advice.',
+          'AI Provider Manager',
+          'Provider-agnostic extraction routing for turning messy reports into reviewable structured memory. The app still never gives dating advice.',
           <div className="section-actions">
             <button className="button" onClick={() => setAiDraft(loadAiSettings())}>Reload saved</button>
+            <button className="button" onClick={() => void testAllProviderDrafts()} disabled={testingAi}>{testingAi ? 'Testing...' : 'Test all'}</button>
             <button className="button success" onClick={saveAiConfig}>Save settings</button>
           </div>,
         )}
@@ -1064,67 +1126,168 @@ function AppBody() {
           <div className="card card-pad">
             <div className="section-head">
               <div>
-                <h2>Provider and model</h2>
-                <p className="card-copy">Local heuristic remains available. OpenRouter is optional and only used for extraction.</p>
+                <h2>Add provider</h2>
+                <p className="card-copy">Gemini first, OpenRouter second, custom later. Local heuristic is always the final fallback.</p>
               </div>
-              <span className={`chip ${effectiveKeyReady ? 'success' : 'warn'}`}>{effectiveKeyReady ? 'key available' : 'not configured'}</span>
+              <span className="chip success">local fallback ready</span>
             </div>
-            <div className="grid field-grid">
+            <div className="section-actions section-gap-small">
+              <button className="button" onClick={() => addProviderDraft('gemini')}>Add Gemini</button>
+              <button className="button" onClick={() => addProviderDraft('openrouter')}>Add OpenRouter</button>
+              <button className="button" onClick={() => addProviderDraft('openai-compatible')}>Add custom</button>
+            </div>
+            <div className="grid field-grid section-gap-small">
               <div className="field">
-                <label>Provider</label>
-                <select value={aiDraft.provider} onChange={(event) => setAiDraft((draft) => ({ ...draft, provider: event.target.value as AiSettings['provider'] }))}>
-                  <option value="local">Local heuristic</option>
-                  <option value="openrouter">OpenRouter</option>
-                </select>
-              </div>
-              <div className="field">
-                <label>Default extraction mode</label>
-                <select value={aiDraft.extractionMode} onChange={(event) => setAiDraft((draft) => ({ ...draft, extractionMode: event.target.value as ExtractionMode }))}>
-                  <option value="local">Local heuristic</option>
-                  <option value="ai">AI only</option>
+                <label>Default extraction route</label>
+                <select value={aiDraft.defaultExtractionMode} onChange={(event) => setAiDraft((draft) => ({ ...draft, defaultExtractionMode: event.target.value as ExtractionMode }))}>
+                  <option value="local">Local heuristic only</option>
+                  <option value="ai">AI only: fail safely if providers fail</option>
                   <option value="auto">Auto: AI then local fallback</option>
                 </select>
+                <div className="field-help">AI-only never silently saves local fallback output. Auto clearly tells you when fallback was used.</div>
               </div>
               <div className="field">
-                <label>Model preset</label>
-                <select value={aiDraft.model} onChange={(event) => setAiDraft((draft) => ({ ...draft, model: event.target.value }))}>
-                  <option value="deepseek/deepseek-v4-flash">deepseek/deepseek-v4-flash</option>
-                  <option value="deepseek/deepseek-v4-pro">deepseek/deepseek-v4-pro</option>
-                  <option value={aiDraft.model}>Custom: {aiDraft.model}</option>
+                <label>Extraction profile</label>
+                <select value={extractionProfile} onChange={(event) => setExtractionProfile(event.target.value)}>
+                  <option value="fast">Fast</option>
+                  <option value="balanced">Balanced</option>
+                  <option value="strict">Strict</option>
                 </select>
+                <div className="field-help">Strict lowers creativity and keeps stronger JSON discipline. Advanced values remain editable below.</div>
               </div>
-              <div className="field">
-                <label>Model name</label>
-                <input value={aiDraft.model} onChange={(event) => setAiDraft((draft) => ({ ...draft, model: event.target.value }))} placeholder="deepseek/deepseek-v4-flash" />
-              </div>
-              <div className="field">
-                <label>Temperature</label>
-                <input type="number" min="0" max="1" step="0.1" value={aiDraft.temperature} onChange={(event) => setAiDraft((draft) => ({ ...draft, temperature: Number(event.target.value) }))} />
-              </div>
-              <div className="field">
-                <label>Max tokens</label>
-                <input type="number" min="200" max="8000" step="100" value={aiDraft.maxTokens} onChange={(event) => setAiDraft((draft) => ({ ...draft, maxTokens: Number(event.target.value) }))} />
+              <div className="field span-full">
+                <label>Fallback order</label>
+                <div className="ordered-list">
+                  {route.map((provider, index) => (
+                    <div className="order-row" key={provider.id}>
+                      <span className="chip">{index + 1}</span>
+                      <span>{provider.label}</span>
+                      <span className="muted">{providerTypeLabel(provider.type)}</span>
+                      {provider.type === 'local' ? <span className="chip success">final fallback</span> : <span className={`chip ${provider.enabled ? 'success' : 'warn'}`}>{provider.enabled ? 'enabled' : 'disabled'}</span>}
+                    </div>
+                  ))}
+                </div>
+                <div className="field-help">{enabledRemoteCount} enabled remote provider(s). Local heuristic always remains last.</div>
               </div>
             </div>
           </div>
           <aside className="card card-pad">
-            <h2>Local API key</h2>
-            <p className="card-copy">Stored locally in this browser only. Never exported, never committed, and visible to this local frontend runtime.</p>
-            <div className="field">
-              <label>OpenRouter API key</label>
-              <input type="password" value={aiDraft.apiKey ?? ''} onChange={(event) => setAiDraft((draft) => ({ ...draft, apiKey: event.target.value }))} placeholder={publicSettings.hasEnvKey ? 'Using VITE_OPENROUTER_API_KEY from .env.local' : 'Paste key locally when ready'} />
-              <div className="field-help">{publicSettings.hasBrowserKey ? 'Browser key is saved in local settings after you click Save.' : publicSettings.hasEnvKey ? '.env.local key detected for local dev.' : 'No API key configured.'}</div>
-            </div>
+            <h2>Key safety</h2>
+            <p className="card-copy">Keys stay in this browser only. They are not included in workspace exports, target exports, Ryan Case Packets, demo data, docs, or Git.</p>
             <div className="section-actions section-gap-small">
-              <button className="button" onClick={() => void testAi()} disabled={testingAi || !effectiveKeyReady}>{testingAi ? 'Testing...' : 'Test connection'}</button>
-              <button className="button danger" onClick={clearSavedAiKey}>Clear key</button>
+              <button className="button" onClick={() => void testAllProviderDrafts()} disabled={testingAi || remoteProviderCount === 0}>{testingAi ? 'Testing...' : 'Test all providers'}</button>
+              <button className="button danger" onClick={clearSavedAiKeys}>Clear all keys</button>
             </div>
-            <div className={`notice ${aiDraft.lastTestStatus === 'connected' ? 'success' : aiDraft.lastTestStatus === 'failed' ? 'error' : 'info'} section-gap-small`}>
-              Status: {aiDraft.lastTestStatus ?? 'not_configured'}{aiDraft.lastTestMessage ? ` - ${aiDraft.lastTestMessage}` : ''}
-            </div>
+            <div className="notice info section-gap-small">Status: {remoteProviderCount ? `${remoteProviderCount} remote provider(s) configured.` : 'No remote provider yet; local heuristic works now.'}</div>
             <div className="notice warning section-gap-small">Production/SaaS must move provider calls behind a backend proxy. Do not use frontend-stored production keys for a public app.</div>
           </aside>
         </section>
+        <section className="grid section-gap">
+          {publicProviders.map((publicProvider) => {
+            const provider = aiDraft.providers.find((item) => item.id === publicProvider.id)!
+            const presets = modelPresetsForProvider(provider.type)
+            const canEditRemote = provider.type !== 'local'
+            return (
+              <div className="card card-pad" key={provider.id}>
+                <div className="section-head">
+                  <div>
+                    <h2>{provider.label}</h2>
+                    <p className="card-copy">{providerTypeLabel(provider.type)} · priority {provider.priority}</p>
+                  </div>
+                  <span className={`chip ${statusClass(provider.lastStatus)}`}>{provider.lastStatus ?? (provider.type === 'local' ? 'connected' : 'not_configured')}</span>
+                </div>
+                <div className="grid field-grid">
+                  <div className="field">
+                    <label>Enabled</label>
+                    <select value={provider.enabled ? 'enabled' : 'disabled'} disabled={provider.type === 'local'} onChange={(event) => setProviderDraft(provider.id, (item) => ({ ...item, enabled: event.target.value === 'enabled' }))}>
+                      <option value="enabled">Enabled</option>
+                      <option value="disabled">Disabled</option>
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label>Provider label</label>
+                    <input value={provider.label} disabled={!canEditRemote} onChange={(event) => setProviderDraft(provider.id, (item) => ({ ...item, label: event.target.value }))} />
+                  </div>
+                  <div className="field">
+                    <label>Provider type</label>
+                    <select value={provider.type} disabled={!canEditRemote} onChange={(event) => {
+                      const nextType = event.target.value as AiProviderType
+                      setProviderDraft(provider.id, (item) => createProviderConfig(nextType, { ...item, type: nextType, model: '', baseUrl: undefined, lastStatus: 'not_configured', lastMessage: undefined }))
+                    }}>
+                      <option value="local">Local heuristic</option>
+                      <option value="gemini">Gemini API</option>
+                      <option value="openrouter">OpenRouter</option>
+                      <option value="openai-compatible">OpenAI-compatible custom</option>
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label>Priority order number</label>
+                    <input type="number" min="1" disabled={!canEditRemote} value={provider.priority} onChange={(event) => setProviderDraft(provider.id, (item) => ({ ...item, priority: Number(event.target.value) }))} />
+                  </div>
+                  {provider.type !== 'local' && (
+                    <div className="field">
+                      <label>API key</label>
+                      <input type="password" value={provider.apiKey ?? ''} onChange={(event) => setProviderDraft(provider.id, (item) => ({ ...item, apiKey: event.target.value }))} placeholder={publicProvider.hasEnvKey ? 'Using local .env key when browser key is empty' : 'Paste key locally when ready'} />
+                      <div className="field-help">{publicProvider.hasBrowserKey ? 'Browser key present after Save.' : publicProvider.hasEnvKey ? '.env.local key detected for local dev.' : 'No API key configured.'}</div>
+                    </div>
+                  )}
+                  {(provider.type === 'openrouter' || provider.type === 'openai-compatible') && (
+                    <div className="field">
+                      <label>Base URL</label>
+                      <input value={provider.baseUrl ?? ''} onChange={(event) => setProviderDraft(provider.id, (item) => ({ ...item, baseUrl: event.target.value }))} placeholder={provider.type === 'openrouter' ? 'https://openrouter.ai/api/v1' : 'https://your-provider.example/v1'} />
+                    </div>
+                  )}
+                  <div className="field">
+                    <label>Model preset</label>
+                    <select value={presets.includes(provider.model) ? provider.model : 'manual'} disabled={provider.type === 'local'} onChange={(event) => {
+                      if (event.target.value !== 'manual') setProviderDraft(provider.id, (item) => ({ ...item, model: event.target.value }))
+                    }}>
+                      {presets.map((preset) => <option value={preset} key={preset}>{preset}</option>)}
+                      <option value="manual">Manual model name</option>
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label>Model name</label>
+                    <input value={provider.model} disabled={provider.type === 'local'} onChange={(event) => setProviderDraft(provider.id, (item) => ({ ...item, model: event.target.value }))} placeholder="gemini-2.5-flash" />
+                  </div>
+                </div>
+                <div className="section-actions section-gap-small">
+                  <button className="button" disabled={!canEditRemote} onClick={() => moveProviderDraft(provider.id, -1)}>Move up</button>
+                  <button className="button" disabled={!canEditRemote} onClick={() => moveProviderDraft(provider.id, 1)}>Move down</button>
+                  <button className="button" disabled={testingAi} onClick={() => void testSingleProvider(provider)}>{provider.type === 'local' ? 'Check local' : 'Test provider'}</button>
+                  <button className="button danger" disabled={!canEditRemote} onClick={() => deleteProviderDraft(provider.id)}>Delete provider</button>
+                </div>
+                <div className={`notice ${statusClass(provider.lastStatus)} section-gap-small`}>
+                  Status: {provider.lastStatus ?? (provider.type === 'local' ? 'connected' : 'not_configured')}{provider.lastMessage ? ` - ${provider.lastMessage}` : ''}
+                </div>
+              </div>
+            )
+          })}
+        </section>
+        <details className="card card-pad section-gap">
+          <summary>Advanced settings</summary>
+          <div className="grid field-grid section-gap-small">
+            <div className="field">
+              <label>Temperature</label>
+              <input type="number" min="0" max="1" step="0.1" value={aiDraft.advanced.temperature} onChange={(event) => setAiDraft((draft) => normalizeAiSettings({ ...draft, advanced: { ...draft.advanced, temperature: Number(event.target.value) } }))} />
+              <div className="field-help">Temperature controls creativity. For memory extraction, low is better.</div>
+            </div>
+            <div className="field">
+              <label>Max output tokens</label>
+              <input type="number" min="200" max="8000" step="100" value={aiDraft.advanced.maxTokens} onChange={(event) => setAiDraft((draft) => normalizeAiSettings({ ...draft, advanced: { ...draft.advanced, maxTokens: Number(event.target.value) } }))} />
+              <div className="field-help">Max output controls response size. Leave default unless extraction is cut off.</div>
+            </div>
+            <div className="field">
+              <label>Request timeout (ms)</label>
+              <input type="number" min="5000" max="120000" step="1000" value={aiDraft.advanced.timeoutMs} onChange={(event) => setAiDraft((draft) => normalizeAiSettings({ ...draft, advanced: { ...draft.advanced, timeoutMs: Number(event.target.value) } }))} />
+            </div>
+            <div className="field">
+              <label>Retries per provider</label>
+              <input type="number" min="1" max="3" value={aiDraft.advanced.retries} onChange={(event) => setAiDraft((draft) => normalizeAiSettings({ ...draft, advanced: { ...draft.advanced, retries: Number(event.target.value) } }))} />
+              <div className="field-help">No infinite retries. Failed providers move to the next configured route.</div>
+            </div>
+          </div>
+        </details>
       </>
     )
   }

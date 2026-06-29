@@ -29,9 +29,43 @@ Optional AI extraction settings are browser-local operational settings, not rela
 
 - Storage key: `ryan-memory-os-ai-settings`
 - Storage surface: `localStorage`
-- Contents: provider, extraction mode, model, temperature, max tokens, optional local OpenRouter API key, and last test status.
+- Contents: `schemaVersion`, default extraction mode, advanced request defaults, and an ordered provider list.
+- Provider fields: `id`, `enabled`, `label`, `type`, optional local `apiKey`, optional `baseUrl`, `model`, `priority`, optional per-provider temperature/max token/timeout overrides, and last test status metadata.
+- Provider types: `local`, `gemini`, `openrouter`, and `openai-compatible`.
+- Local heuristic provider has no key, is always available, and is always normalized as the final fallback.
 - Export policy: never included in target bundles, workspace exports, Ryan Case Packets, or demo data.
-- `.env.local` may provide `VITE_OPENROUTER_API_KEY` for local developer convenience only; it remains ignored by Git.
+- `.env.local` may provide `VITE_GEMINI_API_KEY` or `VITE_OPENROUTER_API_KEY` for local developer convenience only; it remains ignored by Git.
+
+```ts
+interface AIProviderConfig {
+  id: string;
+  enabled: boolean;
+  label: string;
+  type: "local" | "gemini" | "openrouter" | "openai-compatible";
+  apiKey?: string;
+  baseUrl?: string;
+  model: string;
+  priority: number;
+  temperature?: number;
+  maxTokens?: number;
+  timeoutMs?: number;
+  lastStatus?: "not_configured" | "connected" | "failed" | "rate_limited";
+  lastTestedAt?: string;
+}
+
+interface AISettings {
+  schemaVersion: 1;
+  defaultExtractionMode: "local" | "ai" | "auto";
+  providers: AIProviderConfig[];
+  advanced: {
+    temperature: number;
+    maxTokens: number;
+    timeoutMs: number;
+    retries: number;
+  };
+  lastUpdated: string;
+}
+```
 
 ## User profile
 

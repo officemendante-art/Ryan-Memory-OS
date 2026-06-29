@@ -25,18 +25,22 @@
 
 ## Optional AI extraction
 
-- [ ] AI Settings page opens from the sidebar.
-- [ ] Provider selector supports Local heuristic and OpenRouter.
-- [ ] Model selector/input supports DeepSeek presets and manual model names.
-- [ ] API key input is masked.
+- [ ] AI Provider Manager page opens from the sidebar.
+- [ ] Add Gemini provider and verify `gemini-2.5-flash`, `gemini-2.0-flash`, and manual model entry work.
+- [ ] Add OpenRouter provider and verify DeepSeek/Gemini presets plus manual model entry work.
+- [ ] Add custom OpenAI-compatible provider and verify base URL, model name, and key fields work.
+- [ ] Add multiple provider keys and verify masked key inputs never display cleartext.
+- [ ] Move provider priority up/down and verify fallback order updates.
+- [ ] Disable a provider and verify it is skipped by extraction route.
+- [ ] Test one provider and verify status reports connected, failed, rate limited, or not configured clearly.
+- [ ] Test all providers and verify each card receives a clear status.
 - [ ] Save AI settings stores configuration locally in this browser.
-- [ ] Clear key removes the locally stored browser key.
-- [ ] Test connection reports connected, failed, or not configured clearly.
+- [ ] Clear all keys removes locally stored browser keys without deleting provider labels/models/order.
 - [ ] Add Report extraction mode supports Local, AI, and Auto.
 - [ ] AI extraction success creates a review packet, not saved target memory.
-- [ ] AI extraction failure in Auto falls back to local extraction with clear feedback.
+- [ ] AI extraction failure in Auto falls back to local extraction with clear feedback: "AI failed; local fallback used."
 - [ ] AI extraction failure in AI-only mode shows an error and does not write derived memory.
-- [ ] Workspace/target exports do not include OpenRouter API keys.
+- [ ] Workspace/target exports and Ryan Case Packets do not include Gemini, OpenRouter, or custom provider API keys.
 - [ ] Browser console has no uncaught errors during AI settings and extraction attempts.
 
 ## Demo and audit

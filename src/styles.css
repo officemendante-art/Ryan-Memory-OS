@@ -96,9 +96,27 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 }
 .case-file-side { border-color: rgba(142,124,255,.22); }
 .warning-list { margin-top: 13px; display: grid; gap: 8px; }
+.ordered-list { display: grid; gap: 8px; }
+.order-row {
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 12px;
+  background: rgba(255,255,255,.035);
+}
+details.card summary {
+  cursor: pointer;
+  color: #f7f6ff;
+  font-weight: 850;
+  letter-spacing: -.02em;
+}
 @media(max-width:800px){
   .hero-card{padding:18px}
   .ring{width:96px;height:96px}
   .report-textarea{min-height:170px!important}
   .save-toggle{grid-column:1/-1;width:max-content}
+  .order-row{grid-template-columns:auto minmax(0,1fr)}
 }

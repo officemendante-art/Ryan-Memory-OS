@@ -179,3 +179,47 @@
 - Pushed branch: `main`.
 - GitHub repo: `https://github.com/officemendante-art/Ryan-Memory-OS.git`
 - Note: the final report-cleanup commit hash is reported in the final Codex response because adding a commit's own hash to this file would change that same hash.
+
+## Pass 5 — Multi-provider AI extraction router
+
+**Completed**
+
+- Replaced the OpenRouter-fixed AI Settings page with an AI Provider Manager.
+- Added multiple provider cards with enabled state, label, type, masked local key, base URL where relevant, model, priority, test status, provider test, move up/down, and delete actions.
+- Added provider types for local heuristic, Gemini API, OpenRouter, and OpenAI-compatible custom providers.
+- Added visible extraction fallback order with local heuristic normalized as the final fallback.
+- Added Test All, Clear All Keys, Save Settings, and Advanced settings for temperature, max output tokens, timeout, and retry count.
+- Added `src/lib/ai/aiSettings.ts`, `providerRegistry.ts`, `aiRouter.ts`, and provider implementations under `src/lib/ai/providers/`.
+- Added direct Gemini `generateContent` support and OpenAI-compatible chat-completions support for OpenRouter/custom providers.
+- Kept prompts extraction-only: no advice, no scoring, no invented facts, JSON-only output.
+- Kept Memory Review mandatory; AI output is validated before review and never saved directly.
+- Added local migration from the previous OpenRouter-only settings object.
+- Updated README, architecture docs, data schema docs, QA checklist, and `.env.example`.
+
+**Verification**
+
+- `npm.cmd run build` — passed.
+- `npm.cmd test` — passed.
+  - 2 test files passed.
+  - 14/14 tests passed.
+
+**Automated test coverage added**
+
+- Provider configs save/load and clear without key leakage.
+- Router orders providers by priority.
+- Auto mode falls back to local extraction when remote providers fail.
+- AI-only mode errors safely when all configured providers fail.
+- Invalid model JSON is rejected before review/save.
+- Workspace exports do not include locally stored API keys.
+- Local heuristic still works without any provider key.
+
+**Manual QA result**
+
+- Browser manual QA for real Gemini/OpenRouter/custom keys is still pending until the user pastes keys locally in the AI Provider Manager.
+- Local build and automated router/storage checks pass without keys.
+
+**Known risks**
+
+- This is still a private local frontend MVP. Browser-stored provider keys are visible to that local browser runtime.
+- Public SaaS/production must move all provider calls behind a backend proxy.
+- Provider response formats can drift; all model output remains untrusted and must stay validated/reviewed.
